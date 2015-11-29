@@ -15,6 +15,7 @@ teardown() {
   rm -rf "$DATA_DIRECTORY"
   export DATA_DIRECTORY="$OLD_DATA_DIRECTORY"
   unset OLD_DATA_DIRECTORY
+  rm -f /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 }
 
 install-heartbleeder() {
