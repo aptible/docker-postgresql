@@ -15,7 +15,7 @@ RUN apt-install locales wget unzip \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
-ADD templates/etc /etc
+ADD templates/etc/apt /etc/apt
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
       B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8 && \
     apt-get update && \
@@ -25,6 +25,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
     rm -rf /var/lib/apt/lists/*
 
 # Install self-signed certificate and disallow non-SSL connections
+ADD templates/etc/postgresql /etc/postgresql
 RUN mkdir -p /etc/postgresql/9.3/ssl && cd /etc/postgresql/9.3/ssl && \
     openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 \
       -keyout server.key -subj "/CN=PostgreSQL" -out server.crt && \
@@ -42,4 +43,6 @@ VOLUME ["$DATA_DIRECTORY"]
 EXPOSE 5432
 
 ADD run-database.sh /usr/bin/
+ADD utilities.sh /usr/bin/
+
 ENTRYPOINT ["run-database.sh"]
