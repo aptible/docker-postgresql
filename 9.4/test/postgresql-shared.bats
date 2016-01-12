@@ -15,6 +15,7 @@ teardown() {
   rm -rf "$DATA_DIRECTORY"
   export DATA_DIRECTORY="$OLD_DATA_DIRECTORY"
   unset OLD_DATA_DIRECTORY
+  rm -f /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 }
 
 install-heartbleeder() {
@@ -97,4 +98,36 @@ uninstall-heartbleeder() {
   [ "$status" -eq "0" ]
   [ "${lines[-2]}" = "CREATE TABLE" ]
   [ "${lines[-1]}" = "INSERT 0 1" ]
+}
+
+@test "It should create a replication user and print a connection URL" {
+  run /usr/bin/run-database.sh --activate-leader postgresql://aptible:foobar@127.0.0.1:5432/db
+  [ "$status" -eq "0" ]
+  run psql --command '\dt' $output
+}
+
+@test "It should set up a follower" {
+  export FOLLOWER_DIRECTORY=/tmp/follower
+  mkdir -p $FOLLOWER_DIRECTORY
+
+  export $(/usr/bin/run-database.sh --activate-leader postgresql://aptible:foobar@127.0.0.1:5432/db)
+  DATA_DIRECTORY=$FOLLOWER_DIRECTORY /usr/bin/run-database.sh --initialize-follower
+  su postgres -c "/usr/lib/postgresql/$PG_VERSION/bin/postgres -D "$FOLLOWER_DIRECTORY" \
+                  -c config_file=/etc/postgresql/$PG_VERSION/main/postgresql.conf \
+                  -c port=5433 -c data_directory=$FOLLOWER_DIRECTORY \
+                  -c external_pid_file=$FOLLOWER_DIRECTORY/9.4-main.pid" &
+  until su postgres -c "psql --command '\dt' -p 5433"; do sleep 0.1; done
+
+  su postgres -c "psql -p 5432 --command \"CREATE TABLE foo (i int);\""
+  su postgres -c "psql -p 5432 --command \"INSERT INTO foo VALUES (1234);\""
+  until su postgres -c "psql -p 5433 --command \"SELECT * FROM foo;\""; do sleep 0.1; done
+  run su postgres -c "psql -p 5433 --command \"SELECT * FROM foo;\""
+  [ "$status" -eq "0" ]
+  [ "${lines[0]}" = "  i   " ]
+  [ "${lines[1]}" = "------" ]
+  [ "${lines[2]}" = " 1234" ]
+  [ "${lines[3]}" = "(1 row)" ]
+
+  kill $(cat $FOLLOWER_DIRECTORY/9.4-main.pid)
+  rm -rf $FOLLOWER_DIRECTORY
 }
