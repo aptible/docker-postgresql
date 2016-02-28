@@ -41,6 +41,17 @@ function pg_init_data () {
   chmod go-rwx "$DATA_DIRECTORY"
 }
 
+function pg_init_auth () {
+  # If there's nothing in the data directory yet then we 
+  # need to set up the initial user
+  if [[ -z "$(ls -A $DATA_DIRECTORY)" ]]; then
+    sudo -u postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
+    sudo -u postgres /etc/init.d/postgresql start
+    sudo -u postgres psql --command "CREATE USER ${USERNAME:-aptible} WITH SUPERUSER PASSWORD '$PASSPHRASE'"
+    sudo -u postgres psql --command "CREATE DATABASE ${DATABASE:-db}"
+    sudo -u postgres /etc/init.d/postgresql stop
+  fi
+}
 
 function pg_run_server () {
   # Run pg! Passthrough options.
@@ -52,12 +63,7 @@ function pg_run_server () {
 if [[ "$1" == "--initialize" ]]; then
   pg_init_conf
   pg_init_data
-
-  sudo -u postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
-  sudo -u postgres /etc/init.d/postgresql start
-  sudo -u postgres psql --command "CREATE USER ${USERNAME:-aptible} WITH SUPERUSER PASSWORD '$PASSPHRASE'"
-  sudo -u postgres psql --command "CREATE DATABASE ${DATABASE:-db}"
-  sudo -u postgres /etc/init.d/postgresql stop
+  pg_init_auth
 
 elif [[ "$1" == "--initialize-from" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --initialize-from postgresql://..." && exit 1
@@ -106,6 +112,8 @@ elif [[ "$1" == "--readonly" ]]; then
 
 else
   pg_init_conf
+  pg_init_data
+  pg_init_auth
   pg_run_server
 
 fi
