@@ -106,6 +106,7 @@ elif [[ "$1" == "--readonly" ]]; then
 
 else
   pg_init_conf
+  pg_init_data
   pg_run_server
 
 fi
