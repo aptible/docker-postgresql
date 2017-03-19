@@ -2,9 +2,9 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 9.3.16" {
-  run /usr/lib/postgresql/9.3/bin/postgres --version
-  [[ "$output" =~ "9.3.16"  ]]
+@test "It should install PostgreSQL 9.6.1" {
+  run /usr/lib/postgresql/9.6.1/bin/postgres --version
+  [[ "$output" =~ "9.6.1"  ]]
 }
 
 @test "It should support PLV8" {
@@ -12,16 +12,6 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "CREATE EXTENSION plv8;"
   sudo -u postgres psql --command "CREATE EXTENSION plls;"
   sudo -u postgres psql --command "CREATE EXTENSION plcoffee;"
-}
-
-@test "It should support tds_fdw" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION tds_fdw;"
-}
-
-@test "It should support pg_proctab" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION pg_proctab;"
 }
 
 @test "It should support plpythonu" {
@@ -37,11 +27,6 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 @test "It should support plpython3u" {
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
-}
-
-@test "It should support mysql_fdw" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION mysql_fdw;"
 }
 
 @test "It should support multicorn" {
