@@ -36,10 +36,10 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
 @test "It should support plperl" {
   initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE LANGUAGE plperl;" 
+  sudo -u postgres psql --command "CREATE LANGUAGE plperl;"
 }
 
 @test "It should support plperlu" {
   initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE LANGUAGE plperlu;" 
+  sudo -u postgres psql --command "CREATE LANGUAGE plperlu;"
 }

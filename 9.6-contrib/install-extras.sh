@@ -3,7 +3,8 @@ set -o errexit
 set -o nounset
 
 # Install packaged extensions first
-apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$"
+apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
+  "^postgresql-plperl-${PG_VERSION}$"
 
 # Now, install source extensions
 
@@ -15,7 +16,6 @@ DEPS=(
   libpq-dev "^postgresql-server-dev-${PG_VERSION}$"
   libv8-3.14-dev
   python-dev
-  "postgresql-plperl-${PG_VERSION}"
 )
 
 apt-install "${DEPS[@]}"
