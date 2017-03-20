@@ -15,6 +15,7 @@ DEPS=(
   libpq-dev "^postgresql-server-dev-${PG_VERSION}$"
   libv8-3.14-dev
   python-dev
+  "postgresql-plperl-${PG_VERSION}"
 )
 
 apt-install "${DEPS[@]}"

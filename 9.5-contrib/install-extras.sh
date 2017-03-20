@@ -17,6 +17,7 @@ DEPS=(
   libv8-3.14-dev
   libmysqlclient-dev
   python-dev
+  "postgresql-plperl-${PG_VERSION}"
 )
 
 apt-install "${DEPS[@]}"
