@@ -13,6 +13,7 @@ env:
     - TAG=9.5
     - TAG=9.5-contrib
     - TAG=9.6
+    - TAG=9.6-contrib
 
 script:
   - make build
