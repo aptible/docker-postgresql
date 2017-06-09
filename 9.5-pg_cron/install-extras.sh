@@ -17,6 +17,3 @@ echo "73463bf2b778bbe711b42a29ee4101d2839344f1  pg_cron-1.0.0.tar.gz" | sha1sum 
 tar -xzf pg_cron-1.0.0.tar.gz && cd pg_cron-1.0.0
 make && make install
 cd .. && rm -rf pg_cron-1.0.0.tar.gz pg_cron-1.0.0
-mkdir /home/postgres
-touch /home/postgres/.pgpass && chmod 600 /home/postgres/.pgpass
-chown -R postgres:postgres /home/postgres

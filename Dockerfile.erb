@@ -21,6 +21,8 @@ RUN set -x \
 # Define PostgreSQL version for shared scripts
 ENV PG_VERSION <%= ENV.fetch 'POSTGRES_VERSION' %>
 ENV POSTGIS_VERSION <%= ENV.fetch 'POSTGIS_VERSION' %>
+ENV AUTH_METHOD <%= ENV.fetch 'AUTH_METHOD' %>
+ENV PRELOAD_LIB <%= ENV.fetch 'PRELOAD_LIB' %>
 
 # Temporary workaround for host-container user conflicts on Linux Kernel >= 3.15
 # See https://github.com/docker/docker/issues/6345 for details.

@@ -63,7 +63,7 @@ log_destination = 'stderr'
 #------------------------------------------------------------------------------
 # RUNTIME STATISTICS
 #------------------------------------------------------------------------------
-shared_preload_libraries = 'pg_stat_statements'
+shared_preload_libraries = '__PRELOAD_LIB__'
 
 #------------------------------------------------------------------------------
 # AUTOVACUUM PARAMETERS

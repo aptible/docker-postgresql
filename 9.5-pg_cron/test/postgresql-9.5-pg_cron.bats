@@ -8,7 +8,5 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
 @test "It should support pg_cron" {
   initialize_and_start_pg
-  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pg_cron';"
-  restart_pg
   sudo -u postgres psql --command "CREATE EXTENSION pg_cron;"
 }

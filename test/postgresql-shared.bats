@@ -24,6 +24,9 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should require a password" {
+  if [ ${AUTH_METHOD} == "trust" ]; then
+    skip "Peer auth requires a password, trust does not"
+  fi
   initialize_and_start_pg
   run psql -U postgres -l
   [ "$status" -ne "0" ]

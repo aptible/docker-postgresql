@@ -39,6 +39,7 @@ function pg_init_ssl () {
 function pg_init_conf () {
   # Set up the PG config files
   PG_CONF="${CONF_DIRECTORY}/main/postgresql.conf"
+  PG_HBA="${CONF_DIRECTORY}/main/pg_hba.conf"
 
   # Copy over configuration, make substitutions as needed.
   # Useless use of cat, but makes the pipeline more readable.
@@ -50,7 +51,12 @@ function pg_init_conf () {
     | sed "s:__RUN_DIRECTORY__:${RUN_DIRECTORY:-"$DEFAULT_RUN_DIRECTORY"}:g" \
     | sed "s:__PORT__:${PORT:-"$DEFAULT_PORT"}:g" \
     | sed "s:__PG_VERSION__:${PG_VERSION}:g" \
+    | sed "s:__PRELOAD_LIB__:${PRELOAD_LIB}:g"\
     > "${PG_CONF}"
+
+  cat "${PG_HBA}.template"\
+    | sed "s:__AUTH_METHOD__:${AUTH_METHOD}:g" \
+    > "${PG_HBA}"
 
   # Ensure we have a certificate, either from the environment, the filesystem,
   # or just a random one.
