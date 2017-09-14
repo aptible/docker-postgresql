@@ -71,3 +71,11 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   [ "$status" -eq "1" ]
   [ "${lines[0]}" = "ERROR:  DELETE requires a WHERE clause" ]
 }
+
+@test "It should support pgaudit" {
+  dpkg-query -l "postgresql-${PG_VERSION}-pgaudit"
+  initialize_and_start_pg
+  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pgaudit';"
+  restart_pg
+  sudo -u postgres psql --command "CREATE EXTENSION pgaudit;"
+}
