@@ -30,6 +30,7 @@ pip install pgxnclient
 
 pgxn install "plv8==1.4.4"
 pgxn install "multicorn==1.3.3"
+pgxn install safeupdate
 
 # Install extensions from source (expects tarball URL as argument)
 install_extension_from_source() {

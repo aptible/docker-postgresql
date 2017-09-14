@@ -33,3 +33,4 @@ pgxn install "tds_fdw==1.0.7"
 pgxn install "plv8==1.4.4"
 USE_PGXS=1 pgxn install "mysql_fdw==2.1.2"
 pgxn install "multicorn==1.3.3"
+pgxn install safeupdate

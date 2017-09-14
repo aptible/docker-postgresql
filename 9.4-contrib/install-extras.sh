@@ -34,3 +34,4 @@ pgxn install "plv8==1.4.4"
 pgxn install --testing "pg_proctab==0.0.5"
 USE_PGXS=1 pgxn install "mysql_fdw==2.1.2"
 pgxn install "multicorn==1.3.3"
+pgxn install safeupdate
