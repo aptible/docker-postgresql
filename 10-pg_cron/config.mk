@@ -1,5 +1,5 @@
-export POSTGRES_VERSION = 9.5
-export POSTGIS_VERSION = 2.2
+export POSTGRES_VERSION = 10
+export POSTGIS_VERSION = 2.4
 export AUTH_METHOD = trust
 export PRELOAD_LIB = "pg_stat_statements,pg_cron"
 export PG_CRON_VERSION=1.0.2

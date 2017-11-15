@@ -16,6 +16,7 @@ env:
     - TAG=9.6
     - TAG=9.6-contrib
     - TAG=10
+    - TAG=10-pg_cron
 
 script:
   - make build

@@ -61,6 +61,10 @@ ENV AUTH_METHOD <%= ENV.fetch 'AUTH_METHOD' %>
 ENV PRELOAD_LIB <%= ENV.fetch 'PRELOAD_LIB' %>
 
 # If any, install extras
+<% if ENV['PG_CRON_VERSION'] %>
+ENV PG_CRON_VERSION <%= ENV.fetch 'PG_CRON_VERSION' %>
+ENV PG_CRON_SHA1SUM <%= ENV.fetch 'PG_CRON_SHA1SUM' %>
+<% end %>
 ADD <%= ENV.fetch 'TAG' %>/install-extras.sh /install-extras.sh
 RUN /install-extras.sh
 
