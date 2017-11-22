@@ -37,6 +37,21 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   su postgres -c "psql -l" | grep en_US.utf8
 }
 
+@test "It should autotune for a 512MB container" {
+  APTIBLE_CONTAINER_SIZE=512 initialize_and_start_pg
+  gosu postgres psql db -c'SHOW shared_buffers;' | grep 128MB
+}
+
+@test "It should autotune for a 1GB container" {
+  APTIBLE_CONTAINER_SIZE=1024 initialize_and_start_pg
+  gosu postgres psql db -c'SHOW shared_buffers;' | grep 256MB
+}
+
+@test "It should autotune for a 2GB container" {
+  APTIBLE_CONTAINER_SIZE=2048 initialize_and_start_pg
+  gosu postgres psql db -c'SHOW shared_buffers;' | grep 512MB
+}
+
 @test "It should support pg_stat_statements" {
   initialize_and_start_pg
   run sudo -u postgres psql --command "CREATE EXTENSION pg_stat_statements;"
