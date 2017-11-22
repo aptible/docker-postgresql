@@ -72,6 +72,7 @@ RUN mkdir $DATA_DIRECTORY && chown -R postgres $DATA_DIRECTORY
 
 ADD bin/run-database.sh /usr/bin/
 ADD bin/utilities.sh /usr/bin/
+ADD bin/autotune /usr/local/bin/
 
 ADD <%= ENV.fetch 'TAG' %>/test /tmp/test
 ADD test /tmp/test
