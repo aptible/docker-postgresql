@@ -95,7 +95,7 @@ endif
 # Per-tag Dockerfile target. Look for Dockerfile or Dockerfile.erb in the root, and use it for $(TAG).
 # We prioritize Dockerfile.erb over Dockerfile if both are present.
 
-$(TAG)/Dockerfile: Dockerfile.erb Dockerfile | $(TAG)
+$(TAG)/Dockerfile: Dockerfile.erb Dockerfile $(TAG)/config.mk | $(TAG)
 	set -e ;\
 	if [ -f 'Dockerfile.erb' ]; then \
 		erb "Dockerfile.erb" > "$(TAG)/Dockerfile"; \
