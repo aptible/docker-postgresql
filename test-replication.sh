@@ -85,4 +85,11 @@ sleep 1
 docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_before;' | grep 'TEST DATA BEFORE'
 docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_after;' | grep 'TEST DATA AFTER'
 
+# shellcheck disable=SC2016
+if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" gt 9.5'; then
+  # This will return CANARY only if there is > 0 rows in the pg_replication_slots table:
+  docker run -i --rm "$IMG" --client "$MASTER_URL" -c "SELECT 'CANARY' FROM pg_replication_slots;" | grep CANARY
+  echo "Replication slot OK"
+fi
+
 echo "Test OK!"
