@@ -16,29 +16,27 @@ make_random_cert() {
 }
 
 @test "It should auto-generate a SSL certificate at --initialize, and reuse it at runtime" {
-  PASSPHRASE=foobar run-database.sh --initialize
+  initialize_and_start_pg
 
-  run-database.sh 2>&1 &
-  wait_for_pg
-
-  # The right cert should work
-  PGSSLMODE=verify-ca PGSSLROOTCERT="${CONF_DIRECTORY}/ssl/server.crt" psql "$PG_URL"
+  FULL_URL="${PG_URL}?sslmode=verify-ca&sslrootcert=${CONF_DIRECTORY}/ssl/server.crt"
+  psql "${FULL_URL}" -c "\dt"
 
   # However, using another cert should trigger an error.
   make_random_cert
-  PGSSLMODE=verify-ca PGSSLROOTCERT="$SSL_CERTIFICATE_PATH" run psql "$PG_URL"
+  FULL_URL="${PG_URL}?sslmode=verify-ca&sslrootcert=${SSL_CERTIFICATE_PATH}"
+
+  run psql "${FULL_URL}" -c "\dt"
   [[ ! "$status" -eq 0 ]]
+  [[ "$output" =~ "certificate verify failed" ]]
 }
 
 @test "It should accept a certificate from the environment at --initialize" {
   make_random_cert
   SSL_KEY="$(cat "$SSL_KEY_PATH")" SSL_CERTIFICATE="$(cat "$SSL_CERTIFICATE_PATH")" \
-    PASSPHRASE=foobar run-database.sh --initialize
+    PASSPHRASE=foobar initialize_and_start_pg
+  FULL_URL="${PG_URL}?sslmode=verify-ca&sslrootcert=${SSL_CERTIFICATE_PATH}"
 
-  run-database.sh 2>&1 &
-  wait_for_pg
-
-  PGSSLMODE=verify-ca PGSSLROOTCERT="$SSL_CERTIFICATE_PATH" psql "$PG_URL"
+  psql "${FULL_URL}" -c "\dt"
 }
 
 @test "It should accept a replacement certificate from the environment at runtime" {
@@ -49,5 +47,7 @@ make_random_cert() {
     run-database.sh 2>&1 &
   wait_for_pg
 
-  PGSSLMODE=verify-ca PGSSLROOTCERT="$SSL_CERTIFICATE_PATH" psql "$PG_URL"
+  FULL_URL="${PG_URL}?sslmode=verify-ca&sslrootcert=${SSL_CERTIFICATE_PATH}"
+
+  psql "${FULL_URL}" -c "\dt"
 }

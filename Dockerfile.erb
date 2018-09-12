@@ -59,13 +59,14 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F
 # Export configuration
 ENV AUTH_METHOD <%= ENV.fetch 'AUTH_METHOD' %>
 ENV PRELOAD_LIB <%= ENV.fetch 'PRELOAD_LIB' %>
+ENV TAG <%= ENV.fetch 'TAG' %>
 
 # If any, install extras
 <% if ENV['PG_CRON_VERSION'] %>
 ENV PG_CRON_VERSION <%= ENV.fetch 'PG_CRON_VERSION' %>
 ENV PG_CRON_SHA1SUM <%= ENV.fetch 'PG_CRON_SHA1SUM' %>
 <% end %>
-ADD <%= ENV.fetch 'TAG' %>/install-extras.sh /install-extras.sh
+ADD "${TAG}"/install-extras.sh /install-extras.sh
 RUN /install-extras.sh
 
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
@@ -78,9 +79,8 @@ ADD bin/run-database.sh /usr/bin/
 ADD bin/utilities.sh /usr/bin/
 ADD bin/autotune /usr/local/bin/
 
-ADD <%= ENV.fetch 'TAG' %>/test /tmp/test
+ADD "${TAG}"/test /tmp/test
 ADD test /tmp/test
-RUN bats /tmp/test
 
 VOLUME ["$DATA_DIRECTORY"]
 EXPOSE 5432

@@ -6,13 +6,6 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   /usr/lib/postgresql/9.4/bin/postgres --version | grep "9.4.19"
 }
 
-@test "It should support PLV8" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION plv8;"
-  sudo -u postgres psql --command "CREATE EXTENSION plls;"
-  sudo -u postgres psql --command "CREATE EXTENSION plcoffee;"
-}
-
 @test "It should support tds_fdw" {
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION tds_fdw;"
@@ -23,66 +16,3 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "CREATE EXTENSION pg_proctab;"
 }
 
-@test "It should support plpythonu" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION plpythonu;"
-}
-
-@test "It should support plpython2u" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION plpython2u;"
-}
-
-@test "It should support plpython3u" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
-}
-
-@test "It should support mysql_fdw" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION mysql_fdw;"
-}
-
-@test "It should support multicorn" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION multicorn;"
-}
-
-@test "It should support plperl" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE LANGUAGE plperl;"
-}
-
-@test "It should support plperlu" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE LANGUAGE plperlu;"
-}
-
-@test "It should support pglogical" {
-  dpkg-query -l postgresql-${PG_VERSION}-pglogical
-  initialize_and_start_pg
-  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pglogical';"
-  restart_pg
-  sudo -u postgres psql --command "CREATE EXTENSION pglogical_origin;"
-  sudo -u postgres psql --command "CREATE EXTENSION pglogical;"
-}
-
-@test "It should support pg-safeupdate" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='safeupdate';"
-  restart_pg
-  sudo -u postgres psql --command "CREATE TABLE foo (i int);"
-  sudo -u postgres psql --command "INSERT INTO foo VALUES (1234);"
-  run sudo -u postgres psql --command "DELETE FROM foo;"
-  [ "$status" -eq "1" ]
-  [ "${lines[0]}" = "ERROR:  DELETE requires a WHERE clause" ]
-}
-
-@test "It should support wal2json" {
-  initialize_and_start_pg
-  sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"
-  sudo -u postgres psql --command "ALTER SYSTEM SET max_replication_slots=1;"
-  restart_pg
-  sudo -u postgres psql --command "SELECT 'init' FROM pg_create_logical_replication_slot('test_slot', 'wal2json');"
-  sudo -u postgres psql --command "SELECT 'stop' FROM pg_drop_replication_slot('test_slot');"
-}
