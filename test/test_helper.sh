@@ -5,6 +5,10 @@ setup() {
   export DATA_DIRECTORY=/tmp/datadir
   mkdir "$DATA_DIRECTORY"
 
+  export OLD_ARCHIVE_DIRECTORY="$ARCHIVE_DIRECTORY"
+  export ARCHIVE_DIRECTORY=/tmp/archive
+  mkdir "$ARCHIVE_DIRECTORY"
+
   export WORK_DIR=/tmp/work
 }
 
@@ -12,8 +16,12 @@ teardown() {
   stop_pg
 
   rm -rf "$DATA_DIRECTORY"
+  rm -rf "$ARCHIVE_DIRECTORY"
   export DATA_DIRECTORY="$OLD_DATA_DIRECTORY"
+  export ARCHIVE_DIRECTORY="$OLD_ARCHIVE_DIRECTORY"
+
   unset OLD_DATA_DIRECTORY
+  unset OLD_ARCHIVE_DIRECTORY
 
   rm -f "${CONF_DIRECTORY}/postgresql.conf"
   rm -rf "${CONF_DIRECTORY}/ssl"

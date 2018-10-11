@@ -1,0 +1,2 @@
+User_Alias  REPORTING = root, postgres
+REPORTING ALL = (root) NOPASSWD: /usr/bin/pagerduty-notify.sh

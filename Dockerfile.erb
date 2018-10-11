@@ -71,17 +71,25 @@ RUN /install-extras.sh
 
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
 ADD templates/etc/postgresql/PG_VERSION $CONF_DIRECTORY
+ADD templates/usr/bin/pagerduty-notify.template /usr/bin
+ADD templates/etc/sudoers.d /etc/sudoers.d
 
 ENV DATA_DIRECTORY /var/db
 RUN mkdir $DATA_DIRECTORY && chown -R postgres $DATA_DIRECTORY
+ENV ARCHIVE_DIRECTORY /var/archive
+RUN mkdir $ARCHIVE_DIRECTORY && chown -R postgres $ARCHIVE_DIRECTORY
 
 ADD bin/run-database.sh /usr/bin/
 ADD bin/utilities.sh /usr/bin/
 ADD bin/autotune /usr/local/bin/
+ADD bin/archive.sh /usr/bin
+ADD bin/archive-cleanup.sh /usr/bin
+
+RUN chmod o+x /usr/bin/archive.sh && chmod o+x /usr/bin/archive-cleanup.sh
 
 ADD "${TAG}"/test /tmp/test
 ADD test /tmp/test
 
-VOLUME ["$DATA_DIRECTORY"]
+VOLUME ["$DATA_DIRECTORY", "$ARCHIVE_DIRECTORY"]
 EXPOSE 5432
 ENTRYPOINT ["/usr/bin/run-database.sh"]

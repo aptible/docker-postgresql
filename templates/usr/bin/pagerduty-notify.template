@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+EVENT_ENDPOINT="https://events.pagerduty.com/generic/2010-04-15/create_event.json"
+
+wget "$EVENT_ENDPOINT" -o /dev/null --header='Content-Type: application/json' \
+  --post-data '{"service_key": "__PAGERDUTY_INTEGRATION_KEY__", "event_type": "trigger", "incident_key": "__PAGERDUTY_INCIDENT_KEY__", "description": "Archive command failed for __PAGERDUTY_IDENTIFIER__"}'

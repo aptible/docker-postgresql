@@ -124,6 +124,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   FOLLOWER_DATA="${FOLLOWER_DIRECTORY}/data"
   FOLLOWER_CONF="${FOLLOWER_DIRECTORY}/conf"
   FOLLOWER_RUN="${FOLLOWER_DIRECTORY}/run"
+  FOLLOWER_ARCHIVE="${FOLLOWER_ARCHIVE}/archive"
   mkdir -p "$FOLLOWER_DIRECTORY"
 
   MASTER_PORT=5432
@@ -133,15 +134,16 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   cp -pr "$CONF_DIRECTORY" "$FOLLOWER_CONF"
   mkdir "$FOLLOWER_DATA"
   mkdir "$FOLLOWER_RUN" && chown postgres:postgres "$FOLLOWER_RUN"
+  mkdir "$FOLLOWER_ARCHIVE" && chown postgres:postgres "$FOLLOWER_ARCHIVE"
 
   MASTER_URL="postgresql://aptible:foobar@127.0.0.1:$MASTER_PORT/db"
   SLAVE_URL="postgresql://aptible:foobar@127.0.0.1:$SLAVE_PORT/db"
 
   DATA_DIRECTORY="$FOLLOWER_DATA" CONF_DIRECTORY="$FOLLOWER_CONF" RUN_DIRECTORY="$FOLLOWER_RUN" PORT="$SLAVE_PORT" \
-    /usr/bin/run-database.sh --initialize-from "$MASTER_URL"
+    ARCHIVE_DIRECTORY="$FOLLOWER_ARCHIVE"  /usr/bin/run-database.sh --initialize-from "$MASTER_URL"
 
   DATA_DIRECTORY="$FOLLOWER_DATA" CONF_DIRECTORY="$FOLLOWER_CONF" RUN_DIRECTORY="$FOLLOWER_RUN" PORT="$SLAVE_PORT" \
-    /usr/bin/run-database.sh &
+    ARCHIVE_DIRECTORY="$FOLLOWER_ARCHIVE" /usr/bin/run-database.sh &
 
   until run-database.sh --client "$SLAVE_URL" --command '\dt'; do sleep 0.1; done
   run-database.sh --client "$MASTER_URL" --command "CREATE TABLE foo (i int);"
