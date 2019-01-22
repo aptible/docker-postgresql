@@ -1,17 +1,17 @@
 #!/bin/bash
 set -o errexit
 set -o nounset
-
+set -x
 # We'll need the pglogical repo...
-echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ wheezy-2ndquadrant main" >> /etc/apt/sources.list
+echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ stretch-2ndquadrant main" >> /etc/apt/sources.list
 
 # ...and its key
 apt-key add /tmp/pglogical.key
 
 # Install packaged extensions first
 apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
-  "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" "^postgresql-${PG_VERSION}-pgaudit$" \
-  "^postgresql-${PG_VERSION}-wal2json$"
+  "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" \
+  "^postgresql-${PG_VERSION}-pgaudit$" "^postgresql-${PG_VERSION}-wal2json$"
 
 # Now, install source extensions
 
@@ -19,16 +19,22 @@ DEPS=(
   build-essential python-pip
   libpq-dev "^postgresql-server-dev-${PG_VERSION}$"
   libv8-3.14-dev
-  libmysqlclient-dev
+  default-libmysqlclient-dev
   python-dev
 )
 
 apt-install "${DEPS[@]}"
 pip install pgxnclient
 
-pgxn install "plv8==1.4.4"
-pgxn install "multicorn==1.3.3"
-pgxn install safeupdate
+# PLV8 v2.3.7 required for PG11
+# https://github.com/plv8/plv8/blob/r3.0alpha/Changes#L15-L16
+# GYP_CHROMIUM_NO_ACTION=0 pgxn install "plv8==2.3.7"
+
+# Not supported yet for PG11
+# https://github.com/Kozea/Multicorn/issues/217
+# pgxn install "multicorn==1.3.5"
+
+#pgxn install safeupdate
 
 # Install extensions from source (expects tarball URL as argument)
 install_extension_from_source() {
@@ -54,6 +60,6 @@ install_extension_from_source() {
   popd
 }
 
-install_extension_from_source \
-  https://github.com/EnterpriseDB/mysql_fdw/archive/REL-2_2_0.tar.gz \
-  1e95e57140186e9ce0b7c23945b59458d1a18d31
+ install_extension_from_source \
+   https://github.com/EnterpriseDB/mysql_fdw/archive/REL-2_5_1.tar.gz \
+   0b43b339ec82a31c2b7a1ce9a2b5899039d1a98d

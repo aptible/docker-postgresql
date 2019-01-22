@@ -1,1 +1,1 @@
-deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main
+deb http://apt.postgresql.org/pub/repos/apt/ __DEBIAN__VERSION__-pgdg main
