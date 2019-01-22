@@ -30,7 +30,7 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 * `9.6`: PostgreSQL 9.6
 * `9.5`: PostgreSQL 9.5
 * `9.4`: PostgreSQL 9.4
-* `9.3`: PostgreSQL 9.3
+* `9.3`: PostgreSQL 9.3 (EOL 2018-11-08)
 
 ## Tests
 

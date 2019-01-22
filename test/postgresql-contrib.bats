@@ -16,6 +16,7 @@ versions-only() {
 
 @test "It should support PLV8" {
   contrib-only
+  versions-only ne 11
   
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plv8;"
@@ -69,6 +70,8 @@ versions-only() {
 
 @test "It should support multicorn" {
   contrib-only
+  versions-only ne 11
+
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION multicorn;"
@@ -100,6 +103,8 @@ versions-only() {
 @test "It should support pg-safeupdate" {
   contrib-only
   versions-only ge 9.4
+  versions-only ne 11
+
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='safeupdate';"
