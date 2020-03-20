@@ -14,9 +14,16 @@ versions-only() {
   fi
 }
 
+debian-only() {
+  if [[ ! "$DEBIAN_VERSION" = $@ ]]; then
+  	skip "not available in $$DEBIAN_VERSION"
+  fi
+}
+
 @test "It should support PLV8" {
   contrib-only
   versions-only lt 11
+  debian-only jessie
   
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plv8;"
@@ -75,6 +82,7 @@ versions-only() {
 @test "It should support multicorn" {
   contrib-only
   versions-only lt 11
+  debian-only jessie
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION multicorn;"
@@ -109,6 +117,7 @@ versions-only() {
   contrib-only
   versions-only ge 9.4
   versions-only lt 11
+  debian-only jessie
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='safeupdate';"
