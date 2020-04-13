@@ -157,6 +157,61 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   [ "${lines[2]}" = " 1234" ]
   [ "${lines[3]}" = "(1 row)" ]
 
+  if dpkg --compare-versions "$PG_VERSION" ge '9.6'; then
+    run sudo -u postgres psql --command "select slot_type from pg_replication_slots;"
+      echo $lines
+    [ "$status" -eq "0" ]
+    [ "${lines[2]}" = " physical" ]
+    [ "${lines[3]}" = "(1 row)" ]
+   fi
+
+  kill $(cat "$FOLLOWER_RUN/$PG_VERSION-main.pid")
+  rm -rf "$FOLLOWER_DIRECTORY"
+}
+
+@test "It should set up a follower not using replication slots with NO_SLOTS set" {
+  initialize_and_start_pg
+  FOLLOWER_DIRECTORY=/tmp/follower
+  FOLLOWER_DATA="${FOLLOWER_DIRECTORY}/data"
+  FOLLOWER_CONF="${FOLLOWER_DIRECTORY}/conf"
+  FOLLOWER_RUN="${FOLLOWER_DIRECTORY}/run"
+  mkdir -p "$FOLLOWER_DIRECTORY"
+
+  MASTER_PORT=5432
+  SLAVE_PORT=5433
+
+  # Bring over master conf as template for slave. Use empty data dir.
+  cp -pr "$CONF_DIRECTORY" "$FOLLOWER_CONF"
+  mkdir "$FOLLOWER_DATA"
+  mkdir "$FOLLOWER_RUN" && chown postgres:postgres "$FOLLOWER_RUN"
+
+  MASTER_URL="postgresql://aptible:foobar@127.0.0.1:$MASTER_PORT/db"
+  SLAVE_URL="postgresql://aptible:foobar@127.0.0.1:$SLAVE_PORT/db"
+
+  NO_SLOTS=1 DATA_DIRECTORY="$FOLLOWER_DATA" CONF_DIRECTORY="$FOLLOWER_CONF" RUN_DIRECTORY="$FOLLOWER_RUN" PORT="$SLAVE_PORT" \
+    /usr/bin/run-database.sh --initialize-from "$MASTER_URL"
+
+  DATA_DIRECTORY="$FOLLOWER_DATA" CONF_DIRECTORY="$FOLLOWER_CONF" RUN_DIRECTORY="$FOLLOWER_RUN" PORT="$SLAVE_PORT" \
+    /usr/bin/run-database.sh &
+
+  until run-database.sh --client "$SLAVE_URL" --command '\dt'; do sleep 0.1; done
+  run-database.sh --client "$MASTER_URL" --command "CREATE TABLE foo (i int);"
+  run-database.sh --client "$MASTER_URL" --command "INSERT INTO foo VALUES (1234);"
+  until run-database.sh --client "$SLAVE_URL" --command "SELECT * FROM foo;"; do sleep 0.1; done
+
+  run run-database.sh --client "$SLAVE_URL" --command "SELECT * FROM foo;"
+  [ "$status" -eq "0" ]
+  [ "${lines[0]}" = "  i   " ]
+  [ "${lines[1]}" = "------" ]
+  [ "${lines[2]}" = " 1234" ]
+  [ "${lines[3]}" = "(1 row)" ]
+
+  if dpkg --compare-versions "$PG_VERSION" ge '9.4'; then
+    run sudo -u postgres psql --command "select slot_type from pg_replication_slots;"
+    [ "$status" -eq "0" ]
+    [ "${lines[2]}" = "(0 rows)" ]
+  fi
+  
   kill $(cat "$FOLLOWER_RUN/$PG_VERSION-main.pid")
   rm -rf "$FOLLOWER_DIRECTORY"
 }

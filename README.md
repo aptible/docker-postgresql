@@ -25,12 +25,39 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 
 ## Available Versions (Tags)
 
-* `latest`: Currently PostgreSQL 10
+* `latest`: Currently PostgreSQL 12
+* `12`: PostgreSQL 12
+* `11`: PostgreSQL 11
 * `10`: PostgreSQL 10
 * `9.6`: PostgreSQL 9.6
 * `9.5`: PostgreSQL 9.5
-* `9.4`: PostgreSQL 9.4
-* `9.3`: PostgreSQL 9.3
+* `9.4`: PostgreSQL 9.4 (EOL 2020-02-13)
+* `9.3`: PostgreSQL 9.3 (EOL 2018-11-08)
+
+## Available Extensions
+
+In the `--contrib` images, the following extensions are available.
+
+| Extension | Avaiable in versions|
+|-----------|---------------------|
+| plpythonu | 9.3 - 11 |
+| plpython2u | 9.3 - 11 |
+| plpython3u | 9.3 - 12 |
+| plperl | 9.3 - 12 |
+| plperlu | 9.3 - 12 |
+| mysql_fdw | 9.3 - 11 |
+| PLV8 |  9.3 - 11|
+| multicorn | 9.3 - 10 |
+| wal2json |  9.4 - 12 |
+| pg-safeupdate | 9.4 - 11 |
+| pglogical | 9.4 - 12 |
+| pg_repack | 9.4 - 11 |
+| pgagent | 9.4 - 12 |
+| pggent|  9.4 - 11 |
+| pgaudit |  9.5 - 11 |
+| pgcron | 10 |
+
+Aptible Support can update your Database to use the `--contrib` image.
 
 ## Tests
 
@@ -54,6 +81,4 @@ Images are built and pushed to Docker Hub on every deploy. Because Quay currentl
 
 MIT License, see [LICENSE](LICENSE.md) for details.
 
-Copyright (c) 2015 [Aptible](https://www.aptible.com) and contributors.
-
-[<img src="https://s.gravatar.com/avatar/f7790b867ae619ae0496460aa28c5861?s=60" style="border-radius: 50%;" alt="@fancyremarker" />](https://github.com/fancyremarker)
+Copyright (c) 2019 [Aptible](https://www.aptible.com) and contributors.

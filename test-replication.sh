@@ -11,7 +11,7 @@ SLAVE_DATA_CONTAINER="${SLAVE_CONTAINER}-data"
 
 function cleanup {
   echo "Cleaning up"
-  docker rm -f "$MASTER_CONTAINER" "$MASTER_DATA_CONTAINER" "$SLAVE_CONTAINER" "$SLAVE_DATA_CONTAINER" || true
+  docker rm -f "$MASTER_CONTAINER" "$MASTER_DATA_CONTAINER" "$SLAVE_CONTAINER" "$SLAVE_DATA_CONTAINER" >/dev/null 2>&1 || true
 }
 
 trap cleanup EXIT
@@ -59,7 +59,7 @@ SLAVE_PORT=54322
 
 docker run -i --rm \
   --volumes-from "$SLAVE_DATA_CONTAINER" \
-  "$IMG" --initialize-from "$MASTER_URL"   # TODO - Is this even gonna work?
+  "$IMG" --initialize-from "$MASTER_URL"
 
 docker run -d --name "$SLAVE_CONTAINER" \
   -e "PORT=${SLAVE_PORT}" \
@@ -84,5 +84,31 @@ sleep 1
 # Check that data is present in both tables
 docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_before;' | grep 'TEST DATA BEFORE'
 docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_after;' | grep 'TEST DATA AFTER'
+
+# shellcheck disable=SC2016
+if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" gt 9.5'; then
+  # This will return CANARY only if there is > 0 rows in the pg_replication_slots table:
+  docker run -i --rm "$IMG" --client "$MASTER_URL" -c "SELECT 'CANARY' FROM pg_replication_slots;" | grep CANARY
+  echo "Replication slot OK"
+fi
+
+echo "Replication set up OK!"
+
+# Set the promote command based on PG version
+if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" ge 12'; then
+  PROMOTE_CMD="SELECT pg_promote();"
+else
+  PROMOTE_CMD="COPY (SELECT 'fast') TO '/var/db/pgsql.trigger';"
+fi
+
+echo "Verify replica is not writeable"
+! docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "INSERT INTO test_after VALUES ('READ ONLY PLEASE');"
+
+echo "Promote the replica"
+docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "$PROMOTE_CMD"
+sleep 5
+
+echo "Write to promoted replica"
+docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "INSERT INTO test_after VALUES ('WRITE PLEASE');"
 
 echo "Test OK!"

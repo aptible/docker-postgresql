@@ -6,12 +6,12 @@ set -o nounset
 echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ wheezy-2ndquadrant main" >> /etc/apt/sources.list
 
 # ...and its key
-apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 5D941908AA7A6805
+apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
 apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
   "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" "^postgresql-${PG_VERSION}-pgaudit$" \
-  "^postgresql-${PG_VERSION}-wal2json$"
+  "^postgresql-${PG_VERSION}-wal2json$" "^postgresql-${PG_VERSION}-repack" "^pgagent$"
 
 # Now, install source extensions
 
@@ -25,10 +25,10 @@ DEPS=(
 )
 
 apt-install "${DEPS[@]}"
-pip install pgxnclient
+pip install 'pgxnclient<1.3'
 
 pgxn install "tds_fdw==1.0.7"
 pgxn install "plv8==1.4.4"
 USE_PGXS=1 pgxn install "mysql_fdw==2.1.2"
-pgxn install "multicorn==1.3.3"
+PYTHON_OVERRIDE=python pgxn install "multicorn==1.3.3"
 pgxn install safeupdate

@@ -137,8 +137,38 @@ elif [[ "$1" == "--initialize-from" ]]; then
   # TODO: We force ssl=true here, but it's not entirely correct to do so. Perhaps Sweetness should be providing this.
   # TODO: Either way, we should respect whatever came in via the original URL..!
   parse_url "$2"
-  # shellcheck disable=SC2154
-  gosu postgres pg_basebackup -D "$DATA_DIRECTORY" -R -d "$protocol$REPL_USER:$REPL_PASS@$host_and_port/$database?ssl=true"
+
+  basebackup_options=(
+    -D "$DATA_DIRECTORY"
+    -R
+    -d "$protocol$REPL_USER:$REPL_PASS@$host_and_port/$database?ssl=true"
+  )
+
+  # Allow for optional bypassing of replication slots to support
+  # legacy replicas.
+  if [[ -z "${NO_SLOTS}" ]] && dpkg --compare-versions "$PG_VERSION" ge '9.6'; then
+    REPL_SLOT="$(pwgen -s 20 | tr '[:upper:]' '[:lower:]')_$(date +%s)"
+    psql "$2" --command "SELECT * FROM pg_create_physical_replication_slot('$REPL_SLOT');" > /dev/null
+
+    basebackup_options=(
+      "${basebackup_options[@]}"
+      -X stream
+      -S "$REPL_SLOT"
+    )
+  fi
+
+  gosu postgres pg_basebackup "${basebackup_options[@]}"
+
+  # Create the trigger to allow PG < 12 replicas to be promoted
+  # (PG 12 natively allows `SELECT pg_promote();`)
+  if dpkg --compare-versions "$PG_VERSION" lt '12'; then
+    TRIGGER="trigger_file = '${DATA_DIRECTORY}/pgsql.trigger'"
+    echo "${TRIGGER}" >> "${DATA_DIRECTORY}/recovery.conf"
+  fi
+
+elif [[ "$1" == "--initialize-backup" ]]; then
+  # Remove recovery.conf if present to not start following the master.
+  rm -f "${DATA_DIRECTORY}/recovery.conf"
 
 elif [[ "$1" == "--client" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --client postgresql://..." && exit

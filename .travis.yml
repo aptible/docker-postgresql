@@ -18,6 +18,10 @@ env:
     - TAG=10
     - TAG=10-contrib
     - TAG=10-pg_cron
+    - TAG=11
+    - TAG=11-contrib
+    - TAG=12
+    - TAG=12-contrib
 
 script:
   - make build

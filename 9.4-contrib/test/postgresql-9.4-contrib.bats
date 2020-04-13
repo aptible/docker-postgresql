@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 9.4.19" {
-  /usr/lib/postgresql/9.4/bin/postgres --version | grep "9.4.19"
+@test "It should install PostgreSQL 9.4.26" {
+  /usr/lib/postgresql/9.4/bin/postgres --version | grep "9.4.26"
 }
 
 @test "It should support tds_fdw" {
@@ -16,3 +16,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "CREATE EXTENSION pg_proctab;"
 }
 
+@test "The libpq version should be pinned for for pg_repack" {
+  dpkg-query -l libpq-dev | grep -F "11."
+  dpkg-query -l libpq5 | grep -F "11."
+}
