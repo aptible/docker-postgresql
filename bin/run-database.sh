@@ -117,7 +117,9 @@ if [[ "$1" == "--initialize" ]]; then
   gosu postgres psql --command "CREATE DATABASE ${DATABASE:-db}"
   gosu postgres /etc/init.d/postgresql stop
 
-  echo "archive_mode = 'on'" > "${DATA_DIRECTORY}/postgresql.auto.conf"
+  if dpkg --compare-versions "$PG_VERSION" ge '9.4'; then
+    echo "archive_mode = 'on'" >> "${DATA_DIRECTORY}/postgresql.auto.conf"
+  fi
 
 elif [[ "$1" == "--initialize-from" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --initialize-from postgresql://..." && exit 1

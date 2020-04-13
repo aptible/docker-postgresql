@@ -8,12 +8,6 @@ contrib-only() {
   fi
 }
 
-versions-only() {
-  if ! dpkg --compare-versions "$PG_VERSION" $@; then
-    skip "not available in $TAG"
-  fi
-}
-
 @test "It should support PLV8" {
   contrib-only
   versions-only lt 11

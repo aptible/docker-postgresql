@@ -73,3 +73,9 @@ install-heartbleeder() {
 uninstall-heartbleeder() {
   rm -rf heartbleeder.zip heartbleeder
 }
+
+versions-only() {
+  if ! dpkg --compare-versions "$PG_VERSION" $@; then
+    skip "not available in $TAG"
+  fi
+}
