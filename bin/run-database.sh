@@ -83,7 +83,7 @@ function pg_init_pagerduty_notify () {
   cat /usr/bin/pagerduty-notify.template \
     | sed "s:__PAGERDUTY_INCIDENT_KEY__:${PAGERDUTY_INCIDENT_KEY}:g" \
     | sed "s:__PAGERDUTY_IDENTIFIER__:${PAGERDUTY_IDENTIFIER}:g" \
-    | sed "s:__PAGERDUTY_INTEGRATION_KEY__:${PAGERDUTY_INTEGRATION_KEY}:g" \
+    | sed "s:__PAGERDUTY_WARNING_KEY__:${PAGERDUTY_WARNING_KEY}:g" \
     > /usr/bin/pagerduty-notify.sh
 
   chown root:root /usr/bin/pagerduty-notify.sh
@@ -91,7 +91,7 @@ function pg_init_pagerduty_notify () {
 
   unset PAGERDUTY_INCIDENT_KEY
   unset PAGERDUTY_IDENTIFIER
-  unset PAGERDUTY_INTEGRATION_KEY
+  unset PAGERDUTY_WARNING_KEY
 }
 
 function pg_run_server () {
