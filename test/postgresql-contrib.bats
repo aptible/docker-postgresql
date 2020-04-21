@@ -17,7 +17,7 @@ versions-only() {
 @test "It should support PLV8" {
   contrib-only
   versions-only lt 11
-  
+
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plv8;"
   sudo -u postgres psql --command "CREATE EXTENSION plls;"
@@ -153,4 +153,12 @@ versions-only() {
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION pgagent;"
+}
+
+@test "It should support pg_partman" {
+  contrib-only
+  versions-only gt 9.5 && versions-only lt 9.7
+
+  initialize_and_start_pg
+  sudo -u postgres psql --command "CREATE EXTENSION pg_partman;"
 }
