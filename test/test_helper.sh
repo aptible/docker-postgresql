@@ -1,5 +1,11 @@
 #!/bin/bash
 
+versions-only() {
+  if ! dpkg --compare-versions "$PG_VERSION" $@; then
+    skip "not available in $TAG"
+  fi
+}
+
 setup() {
   export OLD_DATA_DIRECTORY="$DATA_DIRECTORY"
   export DATA_DIRECTORY=/tmp/datadir

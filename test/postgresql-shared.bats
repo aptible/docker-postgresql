@@ -222,3 +222,17 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   grep "persistent configuration changes" /tmp/postgres.log
   grep "log_min_duration_statement" /tmp/postgres.log
 }
+
+@test "It should support pglogical" {
+  versions-only ge 9.4
+  
+  dpkg-query -l postgresql-${PG_VERSION}-pglogical
+  initialize_and_start_pg
+  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pglogical';"
+  restart_pg
+  echo "$PG_VERSION"
+  if dpkg --compare-versions "$PG_VERSION" eq 9.4; then
+    sudo -u postgres psql --command "CREATE EXTENSION pglogical_origin;"
+  fi
+  sudo -u postgres psql --command "CREATE EXTENSION pglogical;"
+}
