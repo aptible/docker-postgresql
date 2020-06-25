@@ -58,6 +58,7 @@ echo "Initializing replication slave"
 SLAVE_PORT=54322
 
 docker run -i --rm \
+  -e USERNAME="$USER" -e PASSPHRASE="$PASSPHRASE" -e DATABASE="$DATABASE" \
   --volumes-from "$SLAVE_DATA_CONTAINER" \
   "$IMG" --initialize-from "$MASTER_URL"
 

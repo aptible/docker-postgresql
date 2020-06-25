@@ -88,7 +88,7 @@ function pg_run_server () {
 }
 
 
-if [[ "$1" == "--initialize" ]]; then
+function initialize() {
   pg_init_conf
   pg_init_data
 
@@ -98,6 +98,11 @@ if [[ "$1" == "--initialize" ]]; then
   gosu postgres psql --command "CREATE USER \"${USERNAME:-aptible}\" WITH SUPERUSER PASSWORD '$PASSPHRASE'"
   gosu postgres psql --command "CREATE DATABASE ${DB}"
   gosu postgres /etc/init.d/postgresql stop
+}
+
+
+if [[ "$1" == "--initialize" ]]; then
+  initialize
 
 elif [[ "$1" == "--initialize-from" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --initialize-from postgresql://..." && exit 1
@@ -151,7 +156,7 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
   psql "$2" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'wal_level'" \
     | grep 'logical' > /dev/null \
     || { echo "Error: Master database's \"wal_level\" must be \"logical\"" && CONFIG_ERROR=1; }
-  psql $MASTER_URL --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries'" \
+  psql "$2" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries'" \
     | grep 'pglogical' > /dev/null \
     || { echo "Error: \"pglogical\" must be in master database's \"shared_preload_libraries\"" && CONFIG_ERROR=1; }
 
@@ -159,17 +164,21 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
     exit "$CONFIG_ERROR"
   fi
 
-  pg_init_conf
-  pg_init_data
+  initialize
 
   parse_url "$2"
 
   PUBLISHER_DSN="host=${host} port=${port} user=${user} password=${password} dbname=${database}"
-  SUBSCRIBER_DSN="host=localhost port=5432 user=${USER:-aptible} password=${PASSPHRASE} dbname=${DB}"
+  SUBSCRIBER_DSN="host=localhost port=${PORT:-"$DEFAULT_PORT"} user=${USERNAME:-aptible} password=${PASSPHRASE} dbname=${DB}"
   REPLICATION_SET_NAME="aptible_replication_set"
 
   gosu postgres /etc/init.d/postgresql start
-  pg_dump --schema-only --schema public "$2" | gosu postgres psql --dbname "${database}" > /dev/null < "$SCHEMA_DUMPFILE"
+  pg_dump --schema-only --schema public "$2" | gosu postgres psql --dbname "${DB}" > /dev/null
+
+  if dpkg --compare-versions "$PG_VERSION" eq '9.4'; then
+    psql "$2" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+    gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+  fi
 
   psql "$2" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
   gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical"

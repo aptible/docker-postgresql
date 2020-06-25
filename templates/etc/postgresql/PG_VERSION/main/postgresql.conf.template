@@ -39,7 +39,7 @@ wal_level = logical
 max_wal_senders = 10
 wal_keep_segments = 8
 hot_standby = on
-max_replication_slots = 10 # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.4__ __NOT_IF_PG_9.3__
+max_replication_slots = 10
 
 # Checkpointing configuration is required on PG < 9.5. However, 9.5 has smarter
 # defaults, so we don't have it there.
