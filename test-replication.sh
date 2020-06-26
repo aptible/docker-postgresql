@@ -8,10 +8,17 @@ MASTER_CONTAINER="postgres-master"
 MASTER_DATA_CONTAINER="${MASTER_CONTAINER}-data"
 SLAVE_CONTAINER="postgres-slave"
 SLAVE_DATA_CONTAINER="${SLAVE_CONTAINER}-data"
+LOGICAL_SLAVE_CONTAINER="postgres-logical-slave"
+LOGICAL_SLAVE_DATA_CONTAINER="${LOGICAL_SLAVE_CONTAINER}-data"
 
 function cleanup {
   echo "Cleaning up"
-  docker rm -f "$MASTER_CONTAINER" "$MASTER_DATA_CONTAINER" "$SLAVE_CONTAINER" "$SLAVE_DATA_CONTAINER" >/dev/null 2>&1 || true
+  docker rm -f "$MASTER_CONTAINER" \
+    "$MASTER_DATA_CONTAINER" \
+    "$SLAVE_CONTAINER" \
+    "$SLAVE_DATA_CONTAINER" \
+    "$LOGICAL_SLAVE_CONTAINER" \
+    "$LOGICAL_SLAVE_DATA_CONTAINER" > /dev/null 2>&1 || true
 }
 
 trap cleanup EXIT
@@ -50,7 +57,7 @@ MASTER_URL="postgresql://$USER:$PASSPHRASE@$MASTER_IP:$MASTER_PORT/$DATABASE"
 
 echo "Creating test_before table"
 
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE test_before (col TEXT);"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE test_before (col TEXT PRIMARY KEY);"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_before VALUES ('TEST DATA BEFORE');"
 
 
@@ -76,7 +83,7 @@ SLAVE_URL="postgresql://$USER:$PASSPHRASE@$SLAVE_IP:$SLAVE_PORT/$DATABASE"
 until docker exec -i "$SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; do sleep 0.1; done
 
 # Create a test table now that replication has started
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE test_after (col TEXT);"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE test_after (col TEXT PRIMARY KEY);"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_after VALUES ('TEST DATA AFTER');"
 
 # Give replication a little time. (Hopefully) much more than needed!
@@ -112,4 +119,69 @@ sleep 5
 echo "Write to promoted replica"
 docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "INSERT INTO test_after VALUES ('WRITE PLEASE');"
 
-echo "Test OK!"
+echo "Physical replication OK!"
+
+
+# Logical replicaiton
+# Only test supported pg_versions
+docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" lt 9.4' && exit
+
+
+echo "Initializing logical replica data container"
+
+docker create --name "$LOGICAL_SLAVE_DATA_CONTAINER" "$IMG"
+
+
+echo "Initializing logical replication slave"
+LOGICAL_SLAVE_PORT=54323
+
+docker run -i --rm \
+  -e USERNAME="$USER" -e PASSPHRASE="$PASSPHRASE" \
+  -e DATABASE="$DATABASE" -e PORT="$LOGICAL_SLAVE_PORT" \
+  --volumes-from "$LOGICAL_SLAVE_DATA_CONTAINER" \
+  "$IMG" --initialize-from-logical "$MASTER_URL"
+
+docker run -d --name "$LOGICAL_SLAVE_CONTAINER" \
+  -e PORT="$LOGICAL_SLAVE_PORT" \
+  --volumes-from "$LOGICAL_SLAVE_DATA_CONTAINER" \
+  "$IMG"
+
+
+LOGICAL_SLAVE_IP="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$LOGICAL_SLAVE_CONTAINER")"
+LOGICAL_SLAVE_URL="postgresql://$USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$DATABASE"
+
+
+# Wait for slave to come up
+until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; do sleep 0.1; done
+
+# Give replication a little time.
+# Check that the replica's has initialized.
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c 'SELECT * FROM test_before;' | grep 'TEST DATA BEFORE'; then
+      echo "Logical replication set up OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_after VALUES ('TEST DATA AFTER LOGICAL');"
+
+# Give replication a little time.
+# Check that the replica has new data.
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c 'SELECT * FROM test_after;' | grep 'TEST DATA AFTER LOGICAL'; then
+      echo "Logical replication OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)

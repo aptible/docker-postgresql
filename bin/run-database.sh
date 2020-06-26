@@ -44,6 +44,12 @@ function pg_init_ssl () {
 function pg_init_conf () {
   # Set up the PG config files
 
+  if dpkg --compare-versions "$PG_VERSION" lt '9.4'; then
+    WAL_LEVEL=hot_standby
+  else
+    WAL_LEVEL=logical
+  fi
+
   # Copy over configuration, make substitutions as needed.
   # Useless use of cat, but makes the pipeline more readable.
   # shellcheck disable=SC2002
@@ -56,6 +62,7 @@ function pg_init_conf () {
     | sed "s:__PG_VERSION__:${PG_VERSION}:g" \
     | sed "s:__PRELOAD_LIB__:${PRELOAD_LIB}:g"\
     | sed "s:__PG_AUTOTUNE_CONF__:${PG_AUTOTUNE_CONF}:g"\
+    | sed "s:__WAL_LEVEL__:${WAL_LEVEL}:g"\
     > "${PG_CONF}"
 
   cat "${PG_HBA}.template"\
