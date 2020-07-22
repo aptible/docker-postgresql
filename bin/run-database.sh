@@ -160,10 +160,12 @@ elif [[ "$1" == "--initialize-from" ]]; then
 elif [[ "$1" == "--initialize-from-logical" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --initialize-from-logical postgresql://..." && exit 1
 
-  psql "$2" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'wal_level'" \
+  master_url="$2"
+
+  psql "$master_url" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'wal_level'" \
     | grep 'logical' > /dev/null \
     || { echo "Error: Master database's \"wal_level\" must be \"logical\"" && CONFIG_ERROR=1; }
-  psql "$2" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries'" \
+  psql "$master_url" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries'" \
     | grep 'pglogical' > /dev/null \
     || { echo "Error: \"pglogical\" must be in master database's \"shared_preload_libraries\"" && CONFIG_ERROR=1; }
 
@@ -173,34 +175,35 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
 
   initialize
 
-  parse_url "$2"
+  parse_url "$master_url"
 
   PUBLISHER_DSN="host=${host} port=${port} user=${user} password=${password} dbname=${database}"
-  SUBSCRIBER_DSN="host=localhost port=${PORT:-"$DEFAULT_PORT"} user=${USERNAME:-aptible} password=${PASSPHRASE} dbname=${DB}"
+  SUBSCRIBER_DSN="host=127.0.0.1 port=${PORT:-"$DEFAULT_PORT"} user=${USERNAME:-aptible} password=${PASSPHRASE} dbname=${DB}"
   REPLICATION_SET_NAME="aptible_replication_set"
 
   gosu postgres /etc/init.d/postgresql start
-  pg_dump --schema-only --schema public "$2" | gosu postgres psql --dbname "${DB}" > /dev/null
+  pg_dump --schema-only --schema public "$master_url" | gosu postgres psql --dbname "${DB}" > /dev/null
 
   if dpkg --compare-versions "$PG_VERSION" eq '9.4'; then
-    psql "$2" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+    psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
     gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
   fi
 
-  psql "$2" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
+  psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
   gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
 
   # There can only be one node per database
   # Nodes must have unique names
   # Nodes can have multiple connection interfaces
-  psql "$2" --command "SELECT pglogical.create_node(node_name := 'aptible_publisher', dsn := '${PUBLISHER_DSN}')" \
+  psql "$master_url" --command "SELECT pglogical.create_node(node_name := 'aptible_publisher', dsn := '${PUBLISHER_DSN}')" \
     || { echo "Error: Failed to create publisher node. Is there already a pglogical node on the ${database} database?" && exit 1; }
   gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.create_node(node_name := 'aptible_subscriber', dsn := '${SUBSCRIBER_DSN}')"
 
-  psql "$2" --command "SELECT pglogical.create_replication_set(set_name := '${REPLICATION_SET_NAME}')"
-  psql "$2" --command "SELECT pglogical.replication_set_add_all_tables('${REPLICATION_SET_NAME}', ARRAY['public'])"
-  psql "$2" --command "SELECT pglogical.replication_set_add_all_sequences('${REPLICATION_SET_NAME}', ARRAY['public'])"
+  psql "$master_url" --command "SELECT pglogical.create_replication_set(set_name := '${REPLICATION_SET_NAME}')"
+  psql "$master_url" --command "SELECT pglogical.replication_set_add_all_tables('${REPLICATION_SET_NAME}', ARRAY['public'])"
+  psql "$master_url" --command "SELECT pglogical.replication_set_add_all_sequences('${REPLICATION_SET_NAME}', ARRAY['public'])"
   gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.create_subscription(subscription_name := 'aptible_subscription', provider_dsn := '${PUBLISHER_DSN}', replication_sets := ARRAY['${REPLICATION_SET_NAME}'])"
+  gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.wait_for_subscription_sync_complete('aptible_subscription');"
   gosu postgres /etc/init.d/postgresql stop
 
 elif [[ "$1" == "--initialize-backup" ]]; then
