@@ -184,8 +184,11 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
   gosu postgres /etc/init.d/postgresql start
   pg_dump --schema-only --schema public "$master_url" | gosu postgres psql --dbname "${DB}" > /dev/null
 
-  if dpkg --compare-versions "$PG_VERSION" eq '9.4'; then
+  # PG 9.4 requires the pglogical_origin extension to be installed
+  if psql "$master_url" --tuples-only --command "SELECT version()" | grep "PostgreSQL 9.4"; then
     psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+  fi
+  if dpkg --compare-versions "$PG_VERSION" eq '9.4'; then
     gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
   fi
 
