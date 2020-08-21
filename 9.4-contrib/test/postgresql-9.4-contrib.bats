@@ -20,3 +20,9 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   dpkg-query -l libpq-dev | grep -F "11."
   dpkg-query -l libpq5 | grep -F "11."
 }
+
+@test "This image needs to forever support PostGIS 2.1" {
+  run dpkg --status  postgresql-9.4-postgis-2.1
+
+  [[ "$output" =~ "Status: install ok installed" ]]
+}

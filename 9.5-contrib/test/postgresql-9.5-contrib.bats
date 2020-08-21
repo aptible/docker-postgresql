@@ -11,4 +11,8 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "CREATE EXTENSION tds_fdw;"
 }
 
+@test "This image needs to forever support PostGIS 2.2" {
+  run dpkg --status  postgresql-9.5-postgis-2.2
 
+  [[ "$output" =~ "Status: install ok installed" ]]
+}

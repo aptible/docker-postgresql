@@ -10,3 +10,9 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION pg_cron;"
 }
+
+@test "This image needs to forever support PostGIS 2.4" {
+  run dpkg --status  postgresql-10-postgis-2.4
+
+  [[ "$output" =~ "Status: install ok installed" ]]
+}
