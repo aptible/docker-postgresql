@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 9.5.22" {
-  /usr/lib/postgresql/9.5/bin/postgres --version | grep "9.5.22"
+@test "It should install PostgreSQL 9.5.23" {
+  /usr/lib/postgresql/9.5/bin/postgres --version | grep "9.5.23"
 }
 
 @test "It should support tds_fdw" {
