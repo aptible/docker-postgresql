@@ -23,7 +23,6 @@ RUN set -x \
 
 # Define PostgreSQL version for shared scripts
 ENV PG_VERSION <%= ENV.fetch 'POSTGRES_VERSION' %>
-ENV POSTGIS_VERSION <%= ENV.fetch 'POSTGIS_VERSION' %>
 
 # Temporary workaround for host-container user conflicts on Linux Kernel >= 3.15
 # See https://github.com/docker/docker/issues/6345 for details.
@@ -56,8 +55,14 @@ RUN apt-key add /tmp/GPGkeys/postgresql-debian.key \
     "^postgresql-${PG_VERSION}\$" \
     "^postgresql-client-${PG_VERSION}\$" \
     "^postgresql-contrib-${PG_VERSION}\$" \
-    "^postgresql-${PG_VERSION}-postgis-${POSTGIS_VERSION}\$" \
  && rm -rf /var/lib/apt/lists/*
+
+
+ENV POSTGIS_VERSION <%= ENV.fetch 'POSTGIS_VERSION' %>
+RUN apt-get update \
+ && for v in ${POSTGIS_VERSION}; \
+    do sudo apt-get install -y "^postgresql-${PG_VERSION}-postgis-${v}\$" || true; \
+    done
 
 # Export configuration
 ENV AUTH_METHOD <%= ENV.fetch 'AUTH_METHOD' %>
