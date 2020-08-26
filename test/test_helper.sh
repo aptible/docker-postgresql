@@ -71,3 +71,10 @@ install-heartbleeder() {
 uninstall-heartbleeder() {
   rm -rf heartbleeder.zip heartbleeder
 }
+
+get_full_postgis_version()
+{
+  major=$1
+
+  dpkg-query --showformat='${Version}' --show "postgresql-${PG_VERSION}-postgis-${major}" | awk -F '+' '{print $1}'
+}
