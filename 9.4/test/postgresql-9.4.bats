@@ -5,7 +5,12 @@
 }
 
 @test "This image needs to forever support PostGIS 2.1" {
-  run dpkg --status  postgresql-9.4-postgis-2.1
 
-  [[ "$output" =~ "Status: install ok installed" ]]
+  check_postgis "2.1"
+
+  full=$(get_full_postgis_version "2.1")
+
+  initialize_and_start_pg
+  run su postgres -c "psql --command \"CREATE EXTENSION postgis VERSION '${full}';\""
+  [ "$status" -eq "0" ]
 }
