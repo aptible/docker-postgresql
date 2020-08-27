@@ -89,7 +89,7 @@ check_postgis() {
 check_postgis_library() {
   major=$1
 
-  # Ensure the library is available to support already-installed PostGIS
+  # Ensure the library is available to support already-installed version of PostGIS
   [[ -f /usr/lib/postgresql/${PG_VERSION}/lib/postgis-${major}.so ]]
 }
 
