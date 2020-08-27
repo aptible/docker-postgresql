@@ -18,7 +18,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It also supports PostGIS 3" {
-
+  skip
   check_postgis "3"
 
   full=$(get_full_postgis_version "3")
