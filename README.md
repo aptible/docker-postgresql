@@ -46,7 +46,7 @@ In the `--contrib` images, the following extensions are available.
 | plperl | 9.3 - 12 |
 | plperlu | 9.3 - 12 |
 | mysql_fdw | 9.3 - 11 |
-| PLV8 |  9.3 - 11|
+| PLV8 |  9.3 - 10|
 | multicorn | 9.3 - 10 |
 | wal2json |  9.4 - 12 |
 | pg-safeupdate | 9.4 - 11 |
