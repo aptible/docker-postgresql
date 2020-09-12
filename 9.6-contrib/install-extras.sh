@@ -61,3 +61,7 @@ install_extension_from_source \
 install_extension_from_source \
   https://github.com/pgpartman/pg_partman/archive/v4.3.1.tar.gz \
   22eb8069800614a4601a4ce76519a3d9a41c3311
+
+install_extension_from_source \
+  https://github.com/plv8/plv8/archive/v1.4.10.tar.gz \
+  d9dc4ec137424ce5adbb4c4b02d5509b8e2f574d
