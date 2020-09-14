@@ -10,7 +10,7 @@ contrib-only() {
 
 @test "It should support PLV8 1.4.4" {
   contrib-only
-  versions-only lt 11
+  versions-only le 9.4
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plv8 VERSION '1.4.4';"
@@ -20,23 +20,13 @@ contrib-only() {
 
 @test "It should support PLV8 1.4.10" {
   contrib-only
+  versions-only ge 9.5
   versions-only lt 11
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plv8 VERSION '1.4.10';"
   sudo -u postgres psql --command "CREATE EXTENSION plls VERSION '1.4.10';"
   sudo -u postgres psql --command "CREATE EXTENSION plcoffee VERSION '1.4.10';"
-}
-
-@test "It should support upgrading from PLV8 1.4.4 to 1.4.10" {
-  contrib-only
-  versions-only lt 11
-
-  initialize_and_start_pg
-
-  sudo -u postgres psql --command "CREATE EXTENSION plv8 VERSION '1.4.4';"
-  sudo -u postgres psql --command "DROP EXTENSION plv8;"
-  sudo -u postgres psql --command "CREATE EXTENSION plv8 VERSION '1.4.10';"
 }
 
 @test "It should support plpythonu" {

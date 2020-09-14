@@ -20,14 +20,13 @@ DEPS=(
   build-essential python-pip
   libpq-dev "^postgresql-server-dev-${PG_VERSION}$"
   libv8-3.14-dev
-  libmysqlclient-dev
+  default-libmysqlclient-dev
   python-dev
 )
 
 apt-install "${DEPS[@]}"
 pip install 'pgxnclient<1.3'
 
-pgxn install "plv8==1.4.4"
 PYTHON_OVERRIDE=python pgxn install "multicorn==1.3.5"
 pgxn install safeupdate
 
