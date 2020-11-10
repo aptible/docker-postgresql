@@ -19,7 +19,7 @@ ssl = on
 ssl_ciphers = 'DEFAULT:!LOW:!EXP:!MD5:@STRENGTH'
 ssl_cert_file = '__CONF_DIRECTORY__/ssl/server.crt'
 ssl_key_file = '__CONF_DIRECTORY__/ssl/server.key'
-ssl_min_protocol_version = 'TLSv1' # TLSv1 is the default before PG 13
+ssl_min_protocol_version = 'TLSv1' # __NOT_IF_PG_9.3__ __NOT_IF_PG_9.4__ __NOT_IF_PG_9.5__  __NOT_IF_PG_9.6__ __NOT_IF_PG_10__ __NOT_IF_PG_11__
 
 #------------------------------------------------------------------------------
 # RESOURCE USAGE (except WAL)
