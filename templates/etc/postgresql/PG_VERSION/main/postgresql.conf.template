@@ -19,6 +19,7 @@ ssl = on
 ssl_ciphers = 'DEFAULT:!LOW:!EXP:!MD5:@STRENGTH'
 ssl_cert_file = '__CONF_DIRECTORY__/ssl/server.crt'
 ssl_key_file = '__CONF_DIRECTORY__/ssl/server.key'
+ssl_min_protocol_version = 'TLSv1' # TLSv1 is the default before PG 13
 
 #------------------------------------------------------------------------------
 # RESOURCE USAGE (except WAL)
@@ -37,13 +38,14 @@ shared_buffers = 128MB
 
 wal_level = __WAL_LEVEL__
 max_wal_senders = 10
-wal_keep_segments = 8
+wal_keep_segments = 8 # __NOT_IF_PG_13__
+wal_keep_size = 128 # __NOT_IF_PG_9.3__ __NOT_IF_PG_9.4__ __NOT_IF_PG_9.5__  __NOT_IF_PG_9.6__ __NOT_IF_PG_10__ __NOT_IF_PG_11__ __NOT_IF_PG_12__
 hot_standby = on
 max_replication_slots = 10 # __NOT_IF_PG_9.3__
 
 # Checkpointing configuration is required on PG < 9.5. However, 9.5 has smarter
 # defaults, so we don't have it there.
-checkpoint_segments = 8  # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.6__ __NOT_IF_PG_10__ __NOT_IF_PG_11__ __NOT_IF_PG_12__
+checkpoint_segments = 8  # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.6__ __NOT_IF_PG_10__ __NOT_IF_PG_11__ __NOT_IF_PG_12__ __NOT_IF_PG_13__
 
 #------------------------------------------------------------------------------
 # QUERY TUNING
