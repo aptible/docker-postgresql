@@ -142,3 +142,19 @@ contrib-only() {
   restart_pg
   sudo -u postgres psql --command "CREATE EXTENSION pg_partman;"
 }
+
+@test "It should support pgl-ddl" {
+  contrib-only
+  versions-only ge 9.5
+
+  initialize_and_start_pg
+
+  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pglogical';"
+  restart_pg
+  
+  sudo -u postgres psql --command "CREATE EXTENSION pglogical;"
+  sudo -u postgres psql --command "CREATE EXTENSION pgl_ddl_deploy;"
+
+  # Be sure 2.0.0 is installed, we'll have to test the upgrade process when a new version is released.
+  dpkg-query --showformat='${Version}' --show "postgresql-${PG_VERSION}-pgl-ddl-deploy" | awk -F '-' '{print $1}' | grep '2.0.0'
+}
