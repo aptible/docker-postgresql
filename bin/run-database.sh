@@ -27,6 +27,9 @@ function pg_init_ssl () {
     echo "Certs present in environment - using them"
     echo "$SSL_CERTIFICATE" > "$ssl_cert_file"
     echo "$SSL_KEY" > "$ssl_key_file"
+    if [ -n "$CA_CERTIFICATE" ]; then
+      echo "$CA_CERTIFICATE" >> "$ssl_cert_file"
+    fi
   elif [ -f "$ssl_cert_file" ] && [ -f "$ssl_key_file" ]; then
     echo "Certs present on filesystem - using them"
   else
