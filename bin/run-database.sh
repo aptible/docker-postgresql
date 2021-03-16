@@ -110,6 +110,16 @@ function initialize() {
   gosu postgres /etc/init.d/postgresql stop
 }
 
+function replication_slot_name() {
+    if [ -n "$APTIBLE_PSQL_SLOT_OVERRIDE" ]; then
+      echo "${APTIBLE_PSQL_SLOT_OVERRIDE}"
+    elif [ -n "$APTIBLE_DATABASE_HREF" ]; then
+      DATABASE_ID="${APTIBLE_DATABASE_HREF##*/}"
+      echo "aptible_replica_${DATABASE_ID}"
+    else
+      echo "$(pwgen -s 20 | tr '[:upper:]' '[:lower:]')_$(date +%s)"
+    fi
+}
 
 if [[ "$1" == "--initialize" ]]; then
   initialize
@@ -141,7 +151,7 @@ elif [[ "$1" == "--initialize-from" ]]; then
   # Allow for optional bypassing of replication slots to support
   # legacy replicas.
   if [[ -z "${NO_SLOTS}" ]] && dpkg --compare-versions "$PG_VERSION" ge '9.6'; then
-    REPL_SLOT="$(pwgen -s 20 | tr '[:upper:]' '[:lower:]')_$(date +%s)"
+    REPL_SLOT=$(replication_slot_name)
     psql "$2" --command "SELECT * FROM pg_create_physical_replication_slot('$REPL_SLOT');" > /dev/null
 
     basebackup_options=(
