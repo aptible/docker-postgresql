@@ -31,7 +31,7 @@ contrib-only() {
 
 @test "It should support plpythonu" {
   contrib-only
-  versions-only ne 12
+  versions-only lt 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpythonu;"
@@ -39,7 +39,7 @@ contrib-only() {
 
 @test "It should support plpython2u" {
   contrib-only
-  versions-only ne 12
+  versions-only lt 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpython2u;"
@@ -47,6 +47,7 @@ contrib-only() {
 
 @test "It should support plpython3u" {
   contrib-only
+  versions-only lt 13
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
@@ -55,6 +56,7 @@ contrib-only() {
 
 @test "It should support plperl" {
   contrib-only
+  versions-only lt 13
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE LANGUAGE plperl;"
@@ -62,6 +64,7 @@ contrib-only() {
 
 @test "It should support plperlu" {
   contrib-only
+  versions-only lt 13
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE LANGUAGE plperlu;"
@@ -69,7 +72,7 @@ contrib-only() {
 
 @test "It should support mysql_fdw" {
   contrib-only
-  versions-only ne 12
+  versions-only lt 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION mysql_fdw;"
@@ -86,6 +89,7 @@ contrib-only() {
 @test "It should support wal2json" {
   contrib-only
   versions-only ge 9.4
+  versions-only lt 13
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"
@@ -124,7 +128,7 @@ contrib-only() {
 @test "It should support pg_repack" {
   contrib-only
   versions-only ge 9.4
-  versions-only ne 12
+  versions-only lt 12
 
   dpkg-query -l postgresql-${PG_VERSION}-repack
 
@@ -146,6 +150,7 @@ contrib-only() {
 @test "It should support pg_partman" {
   contrib-only
   versions-only ge 9.5
+  versions-only lt 13
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pg_partman_bgw';"

@@ -64,8 +64,14 @@ wait_for_pg
 
 DB_URL="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$PG_CONTAINER"):5432"
 
-
 test_accept_cipher --tlsv1_2 "$DB_URL"
-test_accept_cipher --tlsv1_1 "$DB_URL"
-test_accept_cipher --tlsv1 "$DB_URL"
+
+if [[ "$IMG" =~ postgresql:13 ]]; then
+  test_reject_cipher --tlsv1_1 "$DB_URL"
+  test_reject_cipher --tlsv1 "$DB_URL"
+else
+  test_accept_cipher --tlsv1_1 "$DB_URL"
+  test_accept_cipher --tlsv1 "$DB_URL"
+fi
+
 test_reject_cipher --sslv3 "$DB_URL"

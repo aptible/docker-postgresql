@@ -27,6 +27,9 @@ function pg_init_ssl () {
     echo "Certs present in environment - using them"
     echo "$SSL_CERTIFICATE" > "$ssl_cert_file"
     echo "$SSL_KEY" > "$ssl_key_file"
+    if [ -n "$CA_CERTIFICATE" ]; then
+      echo "$CA_CERTIFICATE" >> "$ssl_cert_file"
+    fi
   elif [ -f "$ssl_cert_file" ] && [ -f "$ssl_key_file" ]; then
     echo "Certs present on filesystem - using them"
   else
@@ -107,6 +110,16 @@ function initialize() {
   gosu postgres /etc/init.d/postgresql stop
 }
 
+function replication_slot_name() {
+    if [ -n "$APTIBLE_PSQL_SLOT_OVERRIDE" ]; then
+      echo "${APTIBLE_PSQL_SLOT_OVERRIDE}"
+    elif [ -n "$APTIBLE_DATABASE_HREF" ]; then
+      DATABASE_ID="${APTIBLE_DATABASE_HREF##*/}"
+      echo "aptible_replica_${DATABASE_ID}"
+    else
+      echo "$(pwgen -s 20 | tr '[:upper:]' '[:lower:]')_$(date +%s)"
+    fi
+}
 
 if [[ "$1" == "--initialize" ]]; then
   initialize
@@ -138,7 +151,7 @@ elif [[ "$1" == "--initialize-from" ]]; then
   # Allow for optional bypassing of replication slots to support
   # legacy replicas.
   if [[ -z "${NO_SLOTS}" ]] && dpkg --compare-versions "$PG_VERSION" ge '9.6'; then
-    REPL_SLOT="$(pwgen -s 20 | tr '[:upper:]' '[:lower:]')_$(date +%s)"
+    REPL_SLOT=$(replication_slot_name)
     psql "$2" --command "SELECT * FROM pg_create_physical_replication_slot('$REPL_SLOT');" > /dev/null
 
     basebackup_options=(
@@ -151,7 +164,7 @@ elif [[ "$1" == "--initialize-from" ]]; then
   gosu postgres pg_basebackup "${basebackup_options[@]}"
 
   # Create the trigger to allow PG < 12 replicas to be promoted
-  # (PG 12 natively allows `SELECT pg_promote();`)
+  # (PG 12+ natively allows `SELECT pg_promote();`)
   if dpkg --compare-versions "$PG_VERSION" lt '12'; then
     TRIGGER="trigger_file = '${DATA_DIRECTORY}/pgsql.trigger'"
     echo "${TRIGGER}" >> "${DATA_DIRECTORY}/recovery.conf"

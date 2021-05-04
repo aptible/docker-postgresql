@@ -66,6 +66,7 @@ SLAVE_PORT=54322
 
 docker run -i --rm \
   -e USERNAME="$USER" -e PASSPHRASE="$PASSPHRASE" -e DATABASE="$DATABASE" \
+  -e APTIBLE_DATABASE_HREF="https://api.aptible.com/databases/8675309" \
   --volumes-from "$SLAVE_DATA_CONTAINER" \
   "$IMG" --initialize-from "$MASTER_URL"
 
@@ -93,10 +94,11 @@ sleep 1
 docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_before;' | grep 'TEST DATA BEFORE'
 docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_after;' | grep 'TEST DATA AFTER'
 
+
+# The primary database should have a replica slot that corresponds to the replica's database ID.
 # shellcheck disable=SC2016
 if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" gt 9.5'; then
-  # This will return CANARY only if there is > 0 rows in the pg_replication_slots table:
-  docker run -i --rm "$IMG" --client "$MASTER_URL" -c "SELECT 'CANARY' FROM pg_replication_slots;" | grep CANARY
+  docker run -i --rm "$IMG" --client "$MASTER_URL" -c "SELECT slot_name FROM pg_replication_slots;" | grep "aptible_replica_8675309"
   echo "Replication slot OK"
 fi
 

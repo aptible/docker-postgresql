@@ -25,12 +25,13 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 
 ## Available Versions (Tags)
 
-* `latest`: Currently PostgreSQL 12
+* `latest`: Currently PostgreSQL 13
+* `13`: PostgreSQL 13
 * `12`: PostgreSQL 12
 * `11`: PostgreSQL 11
 * `10`: PostgreSQL 10
 * `9.6`: PostgreSQL 9.6
-* `9.5`: PostgreSQL 9.5
+* `9.5`: PostgreSQL 9.5 (EOL 2021-02-11)
 * `9.4`: PostgreSQL 9.4 (EOL 2020-02-13)
 * `9.3`: PostgreSQL 9.3 (EOL 2018-11-08)
 
@@ -50,11 +51,10 @@ In the `--contrib` images, the following extensions are available.
 | multicorn | 9.3 - 10 |
 | wal2json |  9.4 - 12 |
 | pg-safeupdate | 9.4 - 11 |
-| pglogical | 9.4 - 12 |
+| pglogical | 9.4 - 13 |
 | pg_repack | 9.4 - 11 |
-| pgagent | 9.4 - 12 |
-| pgagent|  9.4 - 11 |
-| pgaudit |  9.5 - 12 |
+| pgagent | 9.4 - 13 |
+| pgaudit |  9.5 - 13 |
 | pgcron | 10 |
 
 Aptible Support can update your Database to use the `--contrib` image.
