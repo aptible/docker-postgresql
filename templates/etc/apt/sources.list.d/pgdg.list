@@ -1,1 +1,2 @@
-deb http://apt.postgresql.org/pub/repos/apt/ __DEBIAN__VERSION__-pgdg main
+deb http://apt__PGDG_ARCHIVE__.postgresql.org/pub/repos/apt/ __DEBIAN__VERSION__-pgdg__PGDG_ARCHIVE__ main
+

@@ -29,13 +29,14 @@ ENV PG_VERSION <%= ENV.fetch 'POSTGRES_VERSION' %>
 RUN ln -s -f /bin/true /usr/bin/chfn
 
 # Install some helpers we'll need
-RUN apt-install locales wget unzip sudo pwgen \
+RUN apt-install locales wget unzip sudo pwgen apt-transport-https \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
 # And now install Postgres from its own repos
 ADD templates/etc/apt /etc/apt
-RUN sed -ri  's/__DEBIAN__VERSION__/<%= ENV.fetch 'DEBIAN_VERSION' %>/' /etc/apt/sources.list.d/pgdg.list
+RUN sed -ri 's/__DEBIAN__VERSION__/<%= ENV.fetch 'DEBIAN_VERSION' %>/' /etc/apt/sources.list.d/pgdg.list
+RUN sed -ri 's/__PGDG_ARCHIVE__/<%= ENV.fetch 'PGDG_ARCHIVE' %>/g' /etc/apt/sources.list.d/pgdg.list
 
 # The package names below are anchored, becuase they're interpreted by apt as regexes
 # (because they contain "."), which can result in undesired packages being installed if
