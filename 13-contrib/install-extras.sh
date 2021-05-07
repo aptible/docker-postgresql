@@ -9,4 +9,5 @@ echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ stretch-2n
 apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
-apt-install "^postgresql-${PG_VERSION}-pglogical$" "^pgagent$" "^postgresql-${PG_VERSION}-pgaudit$"
+apt-install "^postgresql-${PG_VERSION}-pglogical$" "^pgagent$" "^postgresql-${PG_VERSION}-pgaudit$" \
+            "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-repack"

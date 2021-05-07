@@ -53,10 +53,8 @@ contrib-only() {
   sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
 }
 
-
 @test "It should support plperl" {
   contrib-only
-  versions-only lt 13
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE LANGUAGE plperl;"
@@ -64,7 +62,6 @@ contrib-only() {
 
 @test "It should support plperlu" {
   contrib-only
-  versions-only lt 13
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE LANGUAGE plperlu;"
@@ -128,7 +125,6 @@ contrib-only() {
 @test "It should support pg_repack" {
   contrib-only
   versions-only ge 9.4
-  versions-only lt 12
 
   dpkg-query -l postgresql-${PG_VERSION}-repack
 
