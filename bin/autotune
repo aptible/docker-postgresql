@@ -32,7 +32,7 @@ def to_config_value(v):
     raise TypeError("Unexpected type: {0}".format(type(v)))
 
 
-def generate_config(pg_version, ram_kb):
+def generate_config(ram_kb):
     config = {}
 
     # Directly form pgtune
@@ -46,11 +46,8 @@ def generate_config(pg_version, ram_kb):
     conns = 50
     config['work_mem'] = (ram_kb * 3 / 4) / (conns * 3)
 
-    if pg_version < (9, 5):
-        config['checkpoint_segments'] = '32'
-    else:
-        config['min_wal_size'] = ONE_GB_IN_KB
-        config['max_wal_size'] = 2 * ONE_GB_IN_KB
+    config['min_wal_size'] = ONE_GB_IN_KB
+    config['max_wal_size'] = 2 * ONE_GB_IN_KB
 
     config['wal_buffers'] = min(ram_kb * 3 / 4 / 100, 16 * ONE_MB_IN_KB)
 
@@ -61,37 +58,37 @@ def generate_config(pg_version, ram_kb):
 
 
 def main():
-    raw_version = os.environ['PG_VERSION']
-    pg_version = tuple(int(x) for x in raw_version.split('.'))
     ram_mb = int(os.environ.get('APTIBLE_CONTAINER_SIZE', '1024'))
-    config = generate_config(pg_version, ram_mb * ONE_MB_IN_KB)
+    config = generate_config(ram_mb * ONE_MB_IN_KB)
     for k, v in sorted(config.items()):
         print("{0} = {1}".format(k, v))
 
 
 def test():
     test_cases = [
-        [(9, 3), 0.5 * ONE_GB_IN_KB, {
+        [0.5 * ONE_GB_IN_KB, {
             "shared_buffers": "128MB",
             "effective_cache_size": "384MB",
             "work_mem": "2621kB",
             "maintenance_work_mem": "32MB",
-            "checkpoint_segments": "32",
+            "min_wal_size": "1GB",
+            "max_wal_size": "2GB",
             "checkpoint_completion_target": "0.7",
             "wal_buffers": "3932kB",
             "default_statistics_target": "100",
         }],
-        [(9, 4), ONE_GB_IN_KB, {
+        [ONE_GB_IN_KB, {
             "shared_buffers": "256MB",
             "effective_cache_size": "768MB",
             "work_mem": "5242kB",
             "maintenance_work_mem": "64MB",
-            "checkpoint_segments": "32",
+            "min_wal_size": "1GB",
+            "max_wal_size": "2GB",
             "checkpoint_completion_target": "0.7",
             "wal_buffers": "7864kB",
             "default_statistics_target": "100",
         }],
-        [(9, 5), 2 * ONE_GB_IN_KB, {
+        [2 * ONE_GB_IN_KB, {
             "shared_buffers": "512MB",
             "effective_cache_size": "1536MB",
             "work_mem": "10485kB",
@@ -102,7 +99,7 @@ def test():
             "wal_buffers": "15728kB",
             "default_statistics_target": "100",
         }],
-        [(10,), 4 * ONE_GB_IN_KB, {
+        [4 * ONE_GB_IN_KB, {
             "shared_buffers": "1GB",
             "effective_cache_size": "3GB",
             "work_mem": "20971kB",
@@ -115,12 +112,10 @@ def test():
         }]
     ]
 
-    for version, size, expected_config in test_cases:
-        prefix = "Postgres {0} at {1}GB".format(
-            '.'.join(str(x) for x in version), size / ONE_GB_IN_KB
-        )
+    for size, expected_config in test_cases:
+        prefix = "Postgres at {0}GB".format(size / ONE_GB_IN_KB)
 
-        real_config = generate_config(version, size)
+        real_config = generate_config(size)
 
         real_keys = sorted(real_config.keys())
         expected_keys = sorted(expected_config.keys())
