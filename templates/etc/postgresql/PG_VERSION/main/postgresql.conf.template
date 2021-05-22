@@ -40,7 +40,7 @@ max_wal_senders = 10
 wal_keep_segments = 8 # __NOT_IF_PG_13__
 wal_keep_size = 128 # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.6__ __NOT_IF_PG_10__ __NOT_IF_PG_11__ __NOT_IF_PG_12__
 hot_standby = on
-max_replication_slots = 10 #
+max_replication_slots = 10
 
 #------------------------------------------------------------------------------
 # QUERY TUNING
