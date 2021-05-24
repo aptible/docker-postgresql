@@ -125,9 +125,6 @@ echo "Physical replication OK!"
 
 
 # Logical replicaiton
-# Only test supported pg_versions
-docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" lt 9.4' && exit
-
 
 echo "Initializing logical replica data container"
 

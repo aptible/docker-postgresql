@@ -47,11 +47,7 @@ function pg_init_ssl () {
 function pg_init_conf () {
   # Set up the PG config files
 
-  if dpkg --compare-versions "$PG_VERSION" lt '9.4'; then
-    WAL_LEVEL=hot_standby
-  else
-    WAL_LEVEL=logical
-  fi
+  WAL_LEVEL=logical
 
   # Copy over configuration, make substitutions as needed.
   # Useless use of cat, but makes the pipeline more readable.
@@ -197,12 +193,9 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
   gosu postgres /etc/init.d/postgresql start
   pg_dump --schema-only --schema public "$master_url" | gosu postgres psql --dbname "${DB}" > /dev/null
 
-  # PG 9.4 requires the pglogical_origin extension to be installed
+  # PG 9.4 primary databases require the pglogical_origin extension to be installed
   if psql "$master_url" --tuples-only --command "SELECT version()" | grep "PostgreSQL 9.4"; then
     psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
-  fi
-  if dpkg --compare-versions "$PG_VERSION" eq '9.4'; then
-    gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
   fi
 
   psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
