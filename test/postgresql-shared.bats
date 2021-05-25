@@ -204,11 +204,9 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   [ "${lines[2]}" = " 1234" ]
   [ "${lines[3]}" = "(1 row)" ]
 
-  if dpkg --compare-versions "$PG_VERSION" ge '9.4'; then
-    run sudo -u postgres psql --command "select slot_type from pg_replication_slots;"
-    [ "$status" -eq "0" ]
-    [ "${lines[2]}" = "(0 rows)" ]
-  fi
+  run sudo -u postgres psql --command "select slot_type from pg_replication_slots;"
+  [ "$status" -eq "0" ]
+  [ "${lines[2]}" = "(0 rows)" ]
   
   kill $(cat "$FOLLOWER_RUN/$PG_VERSION-main.pid")
   rm -rf "$FOLLOWER_DIRECTORY"
@@ -224,15 +222,11 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should support pglogical" {
-  versions-only ge 9.4
   
   dpkg-query -l postgresql-${PG_VERSION}-pglogical
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pglogical';"
   restart_pg
   echo "$PG_VERSION"
-  if dpkg --compare-versions "$PG_VERSION" eq 9.4; then
-    sudo -u postgres psql --command "CREATE EXTENSION pglogical_origin;"
-  fi
   sudo -u postgres psql --command "CREATE EXTENSION pglogical;"
 }

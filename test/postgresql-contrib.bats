@@ -8,16 +8,6 @@ contrib-only() {
   fi
 }
 
-@test "It should support PLV8 1.4.4" {
-  contrib-only
-  versions-only le 9.4
-
-  initialize_and_start_pg
-  sudo -u postgres psql --command "CREATE EXTENSION plv8 VERSION '1.4.4';"
-  sudo -u postgres psql --command "CREATE EXTENSION plls VERSION '1.4.4';"
-  sudo -u postgres psql --command "CREATE EXTENSION plcoffee VERSION '1.4.4';"
-}
-
 @test "It should support PLV8 1.4.10" {
   contrib-only
   versions-only ge 9.5
@@ -88,7 +78,7 @@ contrib-only() {
 
 @test "It should support wal2json" {
   contrib-only
-  versions-only ge 9.4
+  versions-only ge 9.5
   versions-only lt 13
 
   initialize_and_start_pg
@@ -112,7 +102,7 @@ contrib-only() {
 
 @test "It should support pg-safeupdate" {
   contrib-only
-  versions-only ge 9.4
+  versions-only ge 9.5
   versions-only lt 11
 
   initialize_and_start_pg
@@ -127,7 +117,7 @@ contrib-only() {
 
 @test "It should support pg_repack" {
   contrib-only
-  versions-only ge 9.4
+  versions-only ge 9.5
   versions-only lt 12
 
   dpkg-query -l postgresql-${PG_VERSION}-repack
@@ -141,7 +131,7 @@ contrib-only() {
 
 @test "It should support pgagent" {
   contrib-only
-  versions-only ge 9.4
+  versions-only ge 9.5
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION pgagent;"

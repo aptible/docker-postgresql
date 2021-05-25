@@ -32,8 +32,8 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 * `10`: PostgreSQL 10
 * `9.6`: PostgreSQL 9.6
 * `9.5`: PostgreSQL 9.5 (EOL 2021-02-11)
-* `9.4`: PostgreSQL 9.4 (EOL 2020-02-13)
-* `9.3`: PostgreSQL 9.3 (EOL 2018-11-08)
+* ~~`9.4`: PostgreSQL 9.4 (EOL 2020-02-13)~~ (Deprecated 2021-05-21)
+* ~~`9.3`: PostgreSQL 9.3 (EOL 2018-11-08)~~ (Deprecated 2021-05-21)
 
 ## Available Extensions
 
@@ -41,19 +41,19 @@ In the `--contrib` images, the following extensions are available.
 
 | Extension | Avaiable in versions|
 |-----------|---------------------|
-| plpythonu | 9.3 - 11 |
-| plpython2u | 9.3 - 11 |
-| plpython3u | 9.3 - 12 |
-| plperl | 9.3 - 12 |
-| plperlu | 9.3 - 12 |
-| mysql_fdw | 9.3 - 11 |
-| PLV8 |  9.3 - 10|
-| multicorn | 9.3 - 10 |
-| wal2json |  9.4 - 12 |
-| pg-safeupdate | 9.4 - 11 |
-| pglogical | 9.4 - 13 |
-| pg_repack | 9.4 - 11 |
-| pgagent | 9.4 - 13 |
+| plpythonu | 9.5 - 11 |
+| plpython2u | 9.5 - 11 |
+| plpython3u | 9.5 - 12 |
+| plperl | 9.5 - 12 |
+| plperlu | 9.5 - 12 |
+| mysql_fdw | 9.5 - 11 |
+| PLV8 |  9.5 - 10|
+| multicorn | 9.5 - 10 |
+| wal2json |  9.5 - 12 |
+| pg-safeupdate | 9.5 - 11 |
+| pglogical | 9.5 - 13 |
+| pg_repack | 9.5 - 11 |
+| pgagent | 9.5 - 13 |
 | pgaudit |  9.5 - 13 |
 | pgcron | 10 |
 
