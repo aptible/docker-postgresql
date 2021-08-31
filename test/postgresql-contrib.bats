@@ -118,7 +118,7 @@ contrib-only() {
 @test "It should support pg_repack" {
   contrib-only
   versions-only ge 9.5
-  versions-only lt 12
+  versions-only lt 13
 
   dpkg-query -l postgresql-${PG_VERSION}-repack
 
