@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 10.17" {
-  /usr/lib/postgresql/10/bin/postgres --version | grep "10.17"
+@test "It should install PostgreSQL 10.18" {
+  /usr/lib/postgresql/10/bin/postgres --version | grep "10.18"
 }
 
 @test "This image needs to forever support PostGIS 2.4" {
