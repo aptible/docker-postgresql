@@ -126,6 +126,28 @@ echo "Physical replication OK!"
 
 # Logical replicaiton
 
+echo "Initializing master for logical replication"
+
+# Add additional databases and schemas to the database server to ensure that they are replicated
+OTHER_DB="other_testdb"
+TEST_SCHEMA="test_schema"
+MASTER_OTHER_DB_URL="postgresql://$USER:$PASSPHRASE@$MASTER_IP:$MASTER_PORT/$OTHER_DB"
+
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE logical_test (col TEXT PRIMARY KEY);"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO logical_test VALUES ('TEST DATA BEFORE');"
+
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE SCHEMA $TEST_SCHEMA;"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE $TEST_SCHEMA.logical_test (col TEXT PRIMARY KEY);"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO $TEST_SCHEMA.logical_test VALUES ('TEST DATA BEFORE');"
+
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE DATABASE $OTHER_DB;"
+docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "CREATE TABLE logical_test (col TEXT PRIMARY KEY);"
+docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO logical_test VALUES ('TEST DATA BEFORE');"
+
+docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "CREATE SCHEMA $TEST_SCHEMA;"
+docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "CREATE TABLE $TEST_SCHEMA.logical_test (col TEXT PRIMARY KEY);"
+docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_SCHEMA.logical_test VALUES ('TEST DATA BEFORE');"
+
 echo "Initializing logical replica data container"
 
 docker create --name "$LOGICAL_SLAVE_DATA_CONTAINER" "$IMG"
@@ -145,10 +167,9 @@ docker run -d --name "$LOGICAL_SLAVE_CONTAINER" \
   --volumes-from "$LOGICAL_SLAVE_DATA_CONTAINER" \
   "$IMG"
 
-
 LOGICAL_SLAVE_IP="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$LOGICAL_SLAVE_CONTAINER")"
 LOGICAL_SLAVE_URL="postgresql://$USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$DATABASE"
-
+LOGICAL_SLAVE_OTHER_DB_URL="postgresql://$USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$OTHER_DB"
 
 # Wait for slave to come up
 until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; do sleep 0.1; done
@@ -159,8 +180,8 @@ until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; 
   for _ in {1..25}; do
     sleep 0.2
 
-    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c 'SELECT * FROM test_before;' | grep 'TEST DATA BEFORE'; then
-      echo "Logical replication set up OK!"
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA BEFORE'; then
+      echo "Logical replication on database $DATABASE schema public OK!"
       exit
     fi
   done
@@ -168,7 +189,49 @@ until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; 
   exit 1
 )
 
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_after VALUES ('TEST DATA AFTER LOGICAL');"
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA BEFORE'; then
+      echo "Logical replication on database $DATABASE schema $TEST_SCHEMA OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA BEFORE'; then
+      echo "Logical replication on database $OTHER_DB schema public OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA BEFORE'; then
+      echo "Logical replication on database $OTHER_DB schema $TEST_SCHEMA OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO logical_test VALUES ('TEST DATA AFTER');"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO $TEST_SCHEMA.logical_test VALUES ('TEST DATA AFTER');"
+docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO logical_test VALUES ('TEST DATA AFTER');"
+docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_SCHEMA.logical_test VALUES ('TEST DATA AFTER');"
 
 # Give replication a little time.
 # Check that the replica has new data.
@@ -176,8 +239,47 @@ docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_after VALU
   for _ in {1..25}; do
     sleep 0.2
 
-    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c 'SELECT * FROM test_after;' | grep 'TEST DATA AFTER LOGICAL'; then
-      echo "Logical replication OK!"
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA AFTER'; then
+      echo "Logical replication on database $DATABASE schema public OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA AFTER'; then
+      echo "Logical replication on database $DATABASE schema $TEST_SCHEMA OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA AFTER'; then
+      echo "Logical replication on database $OTHER_DB schema public OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA AFTER'; then
+      echo "Logical replication on database $OTHER_DB schema $TEST_SCHEMA OK!"
       exit
     fi
   done
