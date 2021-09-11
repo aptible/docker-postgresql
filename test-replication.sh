@@ -133,7 +133,9 @@ OTHER_DB="other_testdb"
 TEST_SCHEMA="test_schema"
 MASTER_OTHER_DB_URL="postgresql://$USER:$PASSPHRASE@$MASTER_IP:$MASTER_PORT/$OTHER_DB"
 
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE ROLE logical_test;"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE logical_test (col TEXT PRIMARY KEY);"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "ALTER TABLE logical_test OWNER TO logical_test;"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO logical_test VALUES ('TEST DATA BEFORE');"
 
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE SCHEMA $TEST_SCHEMA;"

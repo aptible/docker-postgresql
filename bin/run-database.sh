@@ -207,6 +207,25 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
   MASTER_IS_PG_9_4="$(psql "$master_url" --tuples-only --command "SELECT version()" | grep "PostgreSQL 9.4" || true)"
   REPLICATION_SET_NAME="aptible_replication_set"
 
+  roles="$(psql "$master_url" --tuples-only --no-align --command 'SELECT rolname FROM pg_catalog.pg_roles')"
+
+  # If an unexpected user owns a table syncing the database structure will fail
+  echo 'Creating roles:' $roles
+
+  for role in $roles; do
+    gosu postgres psql --dbname "${current_db}" --command "
+      DO \$END\$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT FROM pg_catalog.pg_roles where rolname = '${role}'
+          ) THEN
+            CREATE ROLE ${role} NOLOGIN;
+          END IF;
+        END
+      \$END\$;
+    "
+  done
+
   for current_db in $DBS; do
     echo "Configuring replication for database ${current_db}"
 
@@ -257,15 +276,20 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
     # Do not sync data when the subscription is first created (see below)
     # synchronize_structure includes creating schemas, tables, and extensions
     # Extensions are created without specifying a version so the default/latest is used
-    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.create_subscription(subscription_name := 'aptible_subscription', provider_dsn := '${PUBLISHER_DSN}', replication_sets := ARRAY['${REPLICATION_SET_NAME}','ddl_sql'], synchronize_data := FALSE, synchronize_structure := TRUE)"
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.create_subscription(subscription_name := 'aptible_subscription', provider_dsn := '${PUBLISHER_DSN}', replication_sets := ARRAY['ddl_sql'], synchronize_data := FALSE, synchronize_structure := TRUE)"
     # Wait for the initial sync of the master database's structure
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.wait_for_subscription_sync_complete('aptible_subscription');"
+    # Disable the replication set before syncing data to prevent inserting new rows
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_disable('aptible_subscription');"
 
     # After the structure sync, initiate the data sync but don't wait for it to complete
     # pglogical will retry syncing the data each time the container starts until it succeeds
     # This allows users to access the replica immediately after the structure is synced
     # If any rows were inserted they'll conflict in the sync so we need to truncate the tables before syncing
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_add_replication_set('aptible_subscription', '${REPLICATION_SET_NAME}');"
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_synchronize('aptible_subscription', truncate := TRUE);"
+    # Then re-enable the subscription
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_enable('aptible_subscription');"
   done
 
   gosu postgres /etc/init.d/postgresql stop
