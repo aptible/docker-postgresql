@@ -207,24 +207,12 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
   MASTER_IS_PG_9_4="$(psql "$master_url" --tuples-only --command "SELECT version()" | grep "PostgreSQL 9.4" || true)"
   REPLICATION_SET_NAME="aptible_replication_set"
 
-  roles="$(psql "$master_url" --tuples-only --no-align --command 'SELECT rolname FROM pg_catalog.pg_roles')"
+  echo 'Replicating roles'
 
-  # If an unexpected user owns a table syncing the database structure will fail
-  echo 'Creating roles:' $roles
-
-  for role in $roles; do
-    gosu postgres psql --dbname "${current_db}" --command "
-      DO \$END\$
-        BEGIN
-          IF NOT EXISTS (
-            SELECT FROM pg_catalog.pg_roles where rolname = '${role}'
-          ) THEN
-            CREATE ROLE ${role} NOLOGIN;
-          END IF;
-        END
-      \$END\$;
-    "
-  done
+  # Exclude roles that already exist on the replica or we'll see errors and
+  # potentially change its password or permissions unexpectedly
+  current_roles_dump_regex="ROLE ($(gosu postgres psql --dbname "${current_db}" --tuples-only --no-align --command 'SELECT rolname FROM pg_catalog.pg_roles' | tr '\n' '|'))\W"
+  pg_dumpall -r -d "$master_url" | grep -E -v "$current_roles_dump_regex" | gosu postgres psql --dbname "${DB}"
 
   for current_db in $DBS; do
     echo "Configuring replication for database ${current_db}"
@@ -278,7 +266,16 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
     # Extensions are created without specifying a version so the default/latest is used
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.create_subscription(subscription_name := 'aptible_subscription', provider_dsn := '${PUBLISHER_DSN}', replication_sets := ARRAY['ddl_sql'], synchronize_data := FALSE, synchronize_structure := TRUE)"
     # Wait for the initial sync of the master database's structure
-    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.wait_for_subscription_sync_complete('aptible_subscription');"
+    sleep 1 # PG 9.5- starts in the 'down' state so we need to wait before running the first check.
+    until gosu postgres psql --dbname "${current_db}" --tuples-only --no-align --command "SELECT status FROM pglogical.show_subscription_status('aptible_subscription');" | grep -E -v '^initializing$'; do
+      sleep 1
+    done
+    # If structure sync failed print postgres logs so the user can tell why
+    if gosu postgres psql --dbname "${current_db}" --tuples-only --no-align --command "SELECT status FROM pglogical.show_subscription_status('aptible_subscription');" | grep -E -v '^replicating$'; then
+      echo "Error syncing structure of ${current_db}"
+      cat /var/log/postgresql/*.log
+      exit 1
+    fi
     # Disable the replication set before syncing data to prevent inserting new rows
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_disable('aptible_subscription');"
 

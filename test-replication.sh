@@ -61,67 +61,67 @@ docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE test_before (c
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_before VALUES ('TEST DATA BEFORE');"
 
 
-echo "Initializing replication slave"
-SLAVE_PORT=54322
-
-docker run -i --rm \
-  -e USERNAME="$USER" -e PASSPHRASE="$PASSPHRASE" -e DATABASE="$DATABASE" \
-  -e APTIBLE_DATABASE_HREF="https://api.aptible.com/databases/8675309" \
-  --volumes-from "$SLAVE_DATA_CONTAINER" \
-  "$IMG" --initialize-from "$MASTER_URL"
-
-docker run -d --name "$SLAVE_CONTAINER" \
-  -e "PORT=${SLAVE_PORT}" \
-  --volumes-from "$SLAVE_DATA_CONTAINER" \
-  "$IMG"
-
-
-SLAVE_IP="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$SLAVE_CONTAINER")"
-SLAVE_URL="postgresql://$USER:$PASSPHRASE@$SLAVE_IP:$SLAVE_PORT/$DATABASE"
-
-
-# Wait for slave to come up
-until docker exec -i "$SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; do sleep 0.1; done
-
-# Create a test table now that replication has started
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE test_after (col TEXT PRIMARY KEY);"
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_after VALUES ('TEST DATA AFTER');"
-
-# Give replication a little time. (Hopefully) much more than needed!
-sleep 1
-
-# Check that data is present in both tables
-docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_before;' | grep 'TEST DATA BEFORE'
-docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_after;' | grep 'TEST DATA AFTER'
-
-
-# The primary database should have a replica slot that corresponds to the replica's database ID.
-# shellcheck disable=SC2016
-if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" gt 9.5'; then
-  docker run -i --rm "$IMG" --client "$MASTER_URL" -c "SELECT slot_name FROM pg_replication_slots;" | grep "aptible_replica_8675309"
-  echo "Replication slot OK"
-fi
-
-echo "Replication set up OK!"
-
-# Set the promote command based on PG version
-if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" ge 12'; then
-  PROMOTE_CMD="SELECT pg_promote();"
-else
-  PROMOTE_CMD="COPY (SELECT 'fast') TO '/var/db/pgsql.trigger';"
-fi
-
-echo "Verify replica is not writeable"
-! docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "INSERT INTO test_after VALUES ('READ ONLY PLEASE');"
-
-echo "Promote the replica"
-docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "$PROMOTE_CMD"
-sleep 5
-
-echo "Write to promoted replica"
-docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "INSERT INTO test_after VALUES ('WRITE PLEASE');"
-
-echo "Physical replication OK!"
+#echo "Initializing replication slave"
+#SLAVE_PORT=54322
+#
+#docker run -i --rm \
+#  -e USERNAME="$USER" -e PASSPHRASE="$PASSPHRASE" -e DATABASE="$DATABASE" \
+#  -e APTIBLE_DATABASE_HREF="https://api.aptible.com/databases/8675309" \
+#  --volumes-from "$SLAVE_DATA_CONTAINER" \
+#  "$IMG" --initialize-from "$MASTER_URL"
+#
+#docker run -d --name "$SLAVE_CONTAINER" \
+#  -e "PORT=${SLAVE_PORT}" \
+#  --volumes-from "$SLAVE_DATA_CONTAINER" \
+#  "$IMG"
+#
+#
+#SLAVE_IP="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$SLAVE_CONTAINER")"
+#SLAVE_URL="postgresql://$USER:$PASSPHRASE@$SLAVE_IP:$SLAVE_PORT/$DATABASE"
+#
+#
+## Wait for slave to come up
+#until docker exec -i "$SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; do sleep 0.1; done
+#
+## Create a test table now that replication has started
+#docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE test_after (col TEXT PRIMARY KEY);"
+#docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO test_after VALUES ('TEST DATA AFTER');"
+#
+## Give replication a little time. (Hopefully) much more than needed!
+#sleep 1
+#
+## Check that data is present in both tables
+#docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_before;' | grep 'TEST DATA BEFORE'
+#docker run -i --rm "$IMG" --client "$SLAVE_URL" -c 'SELECT * FROM test_after;' | grep 'TEST DATA AFTER'
+#
+#
+## The primary database should have a replica slot that corresponds to the replica's database ID.
+## shellcheck disable=SC2016
+#if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" gt 9.5'; then
+#  docker run -i --rm "$IMG" --client "$MASTER_URL" -c "SELECT slot_name FROM pg_replication_slots;" | grep "aptible_replica_8675309"
+#  echo "Replication slot OK"
+#fi
+#
+#echo "Replication set up OK!"
+#
+## Set the promote command based on PG version
+#if docker run --rm --entrypoint bash "$IMG" -c 'dpkg --compare-versions "$PG_VERSION" ge 12'; then
+#  PROMOTE_CMD="SELECT pg_promote();"
+#else
+#  PROMOTE_CMD="COPY (SELECT 'fast') TO '/var/db/pgsql.trigger';"
+#fi
+#
+#echo "Verify replica is not writeable"
+#! docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "INSERT INTO test_after VALUES ('READ ONLY PLEASE');"
+#
+#echo "Promote the replica"
+#docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "$PROMOTE_CMD"
+#sleep 5
+#
+#echo "Write to promoted replica"
+#docker run -i --rm "$IMG" --client "$SLAVE_URL" -c "INSERT INTO test_after VALUES ('WRITE PLEASE');"
+#
+#echo "Physical replication OK!"
 
 
 # Logical replicaiton
@@ -131,11 +131,12 @@ echo "Initializing master for logical replication"
 # Add additional databases and schemas to the database server to ensure that they are replicated
 OTHER_DB="other_testdb"
 TEST_SCHEMA="test_schema"
+OTHER_USER="other_testuser"
 MASTER_OTHER_DB_URL="postgresql://$USER:$PASSPHRASE@$MASTER_IP:$MASTER_PORT/$OTHER_DB"
 
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE ROLE logical_test;"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE USER $OTHER_USER WITH ENCRYPTED PASSWORD '$PASSPHRASE';"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE logical_test (col TEXT PRIMARY KEY);"
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "ALTER TABLE logical_test OWNER TO logical_test;"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "GRANT SELECT ON logical_test TO $OTHER_USER;"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO logical_test VALUES ('TEST DATA BEFORE');"
 
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE SCHEMA $TEST_SCHEMA;"
@@ -172,6 +173,7 @@ docker run -d --name "$LOGICAL_SLAVE_CONTAINER" \
 LOGICAL_SLAVE_IP="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$LOGICAL_SLAVE_CONTAINER")"
 LOGICAL_SLAVE_URL="postgresql://$USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$DATABASE"
 LOGICAL_SLAVE_OTHER_DB_URL="postgresql://$USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$OTHER_DB"
+LOGICAL_SLAVE_OTHER_USER_URL="postgresql://$OTHER_USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$DATABASE"
 
 # Wait for slave to come up
 until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; do sleep 0.1; done
@@ -282,6 +284,19 @@ docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA AFTER'; then
       echo "Logical replication on database $OTHER_DB schema $TEST_SCHEMA OK!"
+      exit
+    fi
+  done
+
+  exit 1
+)
+
+(
+  for _ in {1..25}; do
+    sleep 0.2
+
+    if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_USER_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA AFTER'; then
+      echo "Replication of users and permissions OK!"
       exit
     fi
   done
