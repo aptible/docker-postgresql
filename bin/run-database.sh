@@ -184,7 +184,7 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
 
   initialize
 
-  DBS="$(psql "$master_url" --tuples-only --no-align --command 'SELECT datname FROM pg_catalog.pg_database' | grep -v 'template')"
+  DBS="$(psql "$master_url" --tuples-only --no-align --command 'SELECT datname FROM pg_catalog.pg_database' | grep -E -v '^template')"
   NUM_DBS="$(echo "$DBS" | wc -l)"
 
   echo "Configuring replication for databases:" $DBS
