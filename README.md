@@ -52,7 +52,7 @@ In the `--contrib` images, the following extensions are available.
 | wal2json |  9.5 - 12 |
 | pg-safeupdate | 9.5 - 11 |
 | pglogical | 9.5 - 13 |
-| pg_repack | 9.5 - 11 |
+| pg_repack | 9.5 - 13 |
 | pgagent | 9.5 - 13 |
 | pgaudit |  9.5 - 13 |
 | pgcron | 10 |
