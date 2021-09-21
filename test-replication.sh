@@ -151,6 +151,10 @@ docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "CREATE SCHEMA $TES
 docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "CREATE TABLE $TEST_SCHEMA.logical_test (col TEXT PRIMARY KEY);"
 docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_SCHEMA.logical_test VALUES ('TEST DATA BEFORE');"
 
+# Create a table with a foreign key constraint to ensure tables aren't being truncated
+# A table with a dependent FK constraint cannot be truncated even when empty
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE logical_fk_test (id BIGSERIAL PRIMARY KEY, col TEXT REFERENCES logical_test (col));"
+
 echo "Initializing logical replica data container"
 
 docker create --name "$LOGICAL_SLAVE_DATA_CONTAINER" "$IMG"

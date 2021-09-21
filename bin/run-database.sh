@@ -282,9 +282,8 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
     # After the structure sync, initiate the data sync but don't wait for it to complete
     # pglogical will retry syncing the data each time the container starts until it succeeds
     # This allows users to access the replica immediately after the structure is synced
-    # If any rows were inserted they'll conflict in the sync so we need to truncate the tables before syncing
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_add_replication_set('aptible_subscription', '${REPLICATION_SET_NAME}');"
-    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_synchronize('aptible_subscription', truncate := TRUE);"
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_synchronize('aptible_subscription');"
     # Then re-enable the subscription
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_enable('aptible_subscription');"
   done
