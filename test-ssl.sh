@@ -66,7 +66,7 @@ DB_URL="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$PG_CONTAI
 
 test_accept_cipher --tlsv1_2 "$DB_URL"
 
-if [[ "$IMG" =~ postgresql:13 ]]; then
+if [[ "$IMG" =~ postgresql:1[3-4] ]]; then
   test_reject_cipher --tlsv1_1 "$DB_URL"
   test_reject_cipher --tlsv1 "$DB_URL"
 else
