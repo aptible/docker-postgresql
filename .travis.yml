@@ -6,9 +6,6 @@ services:
 
 env:
   matrix:
-    - TAG=9.5
-    - TAG=9.5-contrib
-    - TAG=9.5-pg_cron
     - TAG=9.6
     - TAG=9.6-contrib
     - TAG=10
