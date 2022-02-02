@@ -23,7 +23,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   check_postgis_library 2.5
 }
 
-@test "This image needs to forever support PostGIS 2.5 where it is already installed" {
+@test "This image needs to forever support PostGIS 3" {
   check_postgis_library 3
 }
 

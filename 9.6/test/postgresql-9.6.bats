@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 9.6.23" {
-  /usr/lib/postgresql/9.6/bin/postgres --version | grep "9.6.23"
+@test "It should install PostgreSQL 9.6.24" {
+  /usr/lib/postgresql/9.6/bin/postgres --version | grep "9.6.24"
 }
 
 @test "This image needs to forever support PostGIS 2.3" {
