@@ -25,7 +25,8 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 
 ## Available Versions (Tags)
 
-* `latest`: Currently PostgreSQL 13
+* `latest`: Currently PostgreSQL 14
+* `14`: PostgreSQL 14
 * `13`: PostgreSQL 13
 * `12`: PostgreSQL 12
 * `11`: PostgreSQL 11
@@ -37,7 +38,12 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 
 ## Available Extensions
 
-In the `--contrib` images, the following extensions are available.
+The following extensions are available in all images.
+
+* `pglogical`
+* `postgis`
+
+In the `-contrib` images, the following extensions are available.
 
 | Extension | Avaiable in versions|
 |-----------|---------------------|
@@ -51,7 +57,6 @@ In the `--contrib` images, the following extensions are available.
 | multicorn | 9.5 - 10 |
 | wal2json |  9.5 - 12 |
 | pg-safeupdate | 9.5 - 11 |
-| pglogical | 9.5 - 13 |
 | pg_repack | 9.5 - 13 |
 | pgagent | 9.5 - 13 |
 | pgaudit |  9.5 - 13 |
