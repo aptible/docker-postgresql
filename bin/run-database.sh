@@ -194,7 +194,7 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
   # On a standby server, needs to be at least as many as the master database (default: 8)
   gosu postgres /etc/init.d/postgresql start
 
-  if [ "$NUM_DBS" > 2 ]; then
+  if [ "$NUM_DBS" -gt 2 ]; then
     gosu postgres psql --dbname "${DB}" --command "ALTER SYSTEM SET max_worker_processes = $(( 4 * ${NUM_DBS} ))"
 
     # Restart the database server to apply the new configuration
