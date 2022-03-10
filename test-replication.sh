@@ -131,12 +131,12 @@ echo "Initializing master for logical replication"
 # Add additional databases and schemas to the database server to ensure that they are replicated
 OTHER_DB="other_testdb"
 TEST_SCHEMA="test_schema"
-OTHER_USER="other_testuser"
+OTHER_USER="other.testuser"
 MASTER_OTHER_DB_URL="postgresql://$USER:$PASSPHRASE@$MASTER_IP:$MASTER_PORT/$OTHER_DB"
 
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE USER $OTHER_USER WITH ENCRYPTED PASSWORD '$PASSPHRASE';"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE USER \"$OTHER_USER\" WITH ENCRYPTED PASSWORD '$PASSPHRASE';"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE TABLE logical_test (col TEXT PRIMARY KEY);"
-docker run -i --rm "$IMG" --client "$MASTER_URL" -c "GRANT SELECT ON logical_test TO $OTHER_USER;"
+docker run -i --rm "$IMG" --client "$MASTER_URL" -c "GRANT SELECT ON logical_test TO \"$OTHER_USER\";"
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "INSERT INTO logical_test VALUES ('TEST DATA BEFORE');"
 
 docker run -i --rm "$IMG" --client "$MASTER_URL" -c "CREATE SCHEMA $TEST_SCHEMA;"

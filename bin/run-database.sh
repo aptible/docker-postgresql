@@ -211,7 +211,7 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
 
   # Exclude roles that already exist on the replica or we'll see errors and
   # potentially change its password or permissions unexpectedly
-  current_roles_dump_regex="ROLE ($(gosu postgres psql --dbname "${current_db}" --tuples-only --no-align --command 'SELECT rolname FROM pg_catalog.pg_roles' | tr '\n' '|'))\W"
+  current_roles_dump_regex="ROLE \"?($(gosu postgres psql --dbname "${DB}" --tuples-only --no-align --command 'SELECT rolname FROM pg_catalog.pg_roles' | tr '\n' '|' | sed 's/|$//'))\"?\W"
   pg_dumpall -r -d "$master_url" | grep -E -v "$current_roles_dump_regex" | gosu postgres psql --dbname "${DB}"
 
   for current_db in $DBS; do
