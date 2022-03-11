@@ -227,7 +227,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
   restart_pg || true
   grep "persistent configuration changes" /tmp/postgres.log
-  ! grep "primary_conninfo" /tmp/postgres.log
+  ! grep "primary_conninfo =" /tmp/postgres.log
 }
 
 @test "It should support pglogical" {
