@@ -321,10 +321,9 @@ elif [[ "$1" == "--readonly" ]]; then
 
 else
   echo "----The following persistent configuration changes are present----"
-  egrep -v "^#" "${DATA_DIRECTORY}/postgresql.auto.conf" || true
+  egrep -v "^\s*(#|primary_conninfo)" "${DATA_DIRECTORY}/postgresql.auto.conf" || true
   echo "--------------End persistent configuration changes----------------"
 
   pg_init_conf
   pg_run_server
-
 fi
