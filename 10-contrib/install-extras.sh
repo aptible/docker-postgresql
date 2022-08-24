@@ -3,13 +3,13 @@ set -o errexit
 set -o nounset
 
 # We'll need the pglogical repo...
-echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ wheezy-2ndquadrant main" >> /etc/apt/sources.list
+echo "deb [arch=amd64] https://dl.2ndquadrant.com/default/release/apt wheezy-2ndquadrant main" >> /etc/apt/sources.list
 
 # ...and its key
 apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
-apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
+apt-install "apt-transport-https" "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
   "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" \
   "^postgresql-${PG_VERSION}-pgaudit$" "^postgresql-${PG_VERSION}-wal2json$" \
   "^postgresql-${PG_VERSION}-repack" "^pgagent$"
