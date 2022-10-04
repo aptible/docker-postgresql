@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 12.11" {
-  /usr/lib/postgresql/12/bin/postgres --version | grep "12.11"
+@test "It should install PostgreSQL 12.12" {
+  /usr/lib/postgresql/12/bin/postgres --version | grep "12.12"
 }
 
 @test "This image needs to forever support PostGIS 2.5" {
