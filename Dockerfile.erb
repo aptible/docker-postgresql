@@ -8,7 +8,7 @@ COPY GPGkeys /tmp/GPGkeys/
 
 # Grab gosu: we'll need to step down from root and would rather not have to deal with sudo's
 # awkwardness.
-ENV GOSU_VERSION 1.7
+ENV GOSU_VERSION 1.14
 RUN set -x \
  && apt-get update && apt-get install -y --no-install-recommends ca-certificates wget gnupg2 && rm -rf /var/lib/apt/lists/* \
  && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \

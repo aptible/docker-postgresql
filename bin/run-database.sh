@@ -284,7 +284,10 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
     # This allows users to access the replica immediately after the structure is synced
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_add_replication_set('aptible_subscription', '${REPLICATION_SET_NAME}');"
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_synchronize('aptible_subscription');"
-    # Then re-enable the subscription
+  done
+
+  for current_db in $DBS; do
+    # Re-enable the subscriptions so that replication will start once the Database comes back online
     gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_enable('aptible_subscription');"
   done
 
