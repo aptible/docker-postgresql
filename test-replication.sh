@@ -179,14 +179,17 @@ LOGICAL_SLAVE_URL="postgresql://$USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLA
 LOGICAL_SLAVE_OTHER_DB_URL="postgresql://$USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$OTHER_DB"
 LOGICAL_SLAVE_OTHER_USER_URL="postgresql://$OTHER_USER:$PASSPHRASE@$LOGICAL_SLAVE_IP:$LOGICAL_SLAVE_PORT/$DATABASE"
 
+RETRY_DELAY=0.2
+RETRY_TIMES=50
+
 # Wait for slave to come up
 until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; do sleep 0.1; done
 
 # Give replication a little time.
 # Check that the replica's has initialized.
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA BEFORE'; then
       echo "Logical replication on database $DATABASE schema public OK!"
@@ -198,8 +201,8 @@ until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; 
 )
 
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA BEFORE'; then
       echo "Logical replication on database $DATABASE schema $TEST_SCHEMA OK!"
@@ -211,8 +214,8 @@ until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; 
 )
 
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA BEFORE'; then
       echo "Logical replication on database $OTHER_DB schema public OK!"
@@ -224,8 +227,8 @@ until docker exec -i "$LOGICAL_SLAVE_CONTAINER" sudo -u postgres psql -c '\dt'; 
 )
 
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA BEFORE'; then
       echo "Logical replication on database $OTHER_DB schema $TEST_SCHEMA OK!"
@@ -244,8 +247,8 @@ docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_
 # Give replication a little time.
 # Check that the replica has new data.
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA AFTER'; then
       echo "Logical replication on database $DATABASE schema public OK!"
@@ -257,8 +260,8 @@ docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_
 )
 
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA AFTER'; then
       echo "Logical replication on database $DATABASE schema $TEST_SCHEMA OK!"
@@ -270,8 +273,8 @@ docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_
 )
 
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA AFTER'; then
       echo "Logical replication on database $OTHER_DB schema public OK!"
@@ -283,8 +286,8 @@ docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_
 )
 
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_DB_URL" -c "SELECT * FROM $TEST_SCHEMA.logical_test;" | grep 'TEST DATA AFTER'; then
       echo "Logical replication on database $OTHER_DB schema $TEST_SCHEMA OK!"
@@ -296,8 +299,8 @@ docker run -i --rm "$IMG" --client "$MASTER_OTHER_DB_URL" -c "INSERT INTO $TEST_
 )
 
 (
-  for _ in {1..25}; do
-    sleep 0.2
+  for _ in seq 1 "$RETRY_TIMES"; do
+    sleep "$RETRY_DELAY"
 
     if docker run -i --rm "$IMG" --client "$LOGICAL_SLAVE_OTHER_USER_URL" -c "SELECT * FROM logical_test;" | grep 'TEST DATA AFTER'; then
       echo "Replication of users and permissions OK!"
