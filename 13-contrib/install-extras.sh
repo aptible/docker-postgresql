@@ -10,4 +10,4 @@ apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
 apt-install "^postgresql-${PG_VERSION}-pglogical$" "^pgagent$" "^postgresql-${PG_VERSION}-pgaudit$" \
-            "^postgresql-${PG_VERSION}-repack$"
+            "^postgresql-${PG_VERSION}-repack$" "^postgresql-${PG_VERSION}-wal2json$"

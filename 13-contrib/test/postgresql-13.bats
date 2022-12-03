@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 13.8" {
-  /usr/lib/postgresql/13/bin/postgres --version | grep "13.8"
+@test "It should install PostgreSQL 13.9" {
+  /usr/lib/postgresql/13/bin/postgres --version | grep "13.9"
 }
 
 @test "This image needs to forever support PostGIS 3" {
