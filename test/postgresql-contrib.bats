@@ -79,7 +79,7 @@ contrib-only() {
 @test "It should support wal2json" {
   contrib-only
   versions-only ge 9.5
-  versions-only lt 13
+  versions-only lt 14
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"

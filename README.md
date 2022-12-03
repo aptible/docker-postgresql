@@ -55,7 +55,7 @@ In the `-contrib` images, the following extensions are available.
 | mysql_fdw | 9.5 - 11 |
 | PLV8 |  9.5 - 10|
 | multicorn | 9.5 - 10 |
-| wal2json |  9.5 - 12 |
+| wal2json |  9.5 - 13 |
 | pg-safeupdate | 9.5 - 11 |
 | pg_repack | 9.5 - 13 |
 | pgagent | 9.5 - 13 |
