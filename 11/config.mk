@@ -1,4 +1,4 @@
-export DEBIAN_VERSION = stretch
+export DEBIAN_VERSION = buster
 export POSTGRES_VERSION = 11
 export POSTGIS_VERSION = "2.5"
 export AUTH_METHOD = peer

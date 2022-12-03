@@ -1,4 +1,21 @@
-FROM quay.io/aptible/debian:<%= ENV.fetch 'DEBIAN_VERSION' %>
+FROM debian:<%= ENV.fetch 'DEBIAN_VERSION' %>
+
+# Install latest security updates now, and on build
+# During build, we use a different CDN to allow fixing DSA 4371-1.
+
+RUN SECURITY_LIST=$(mktemp) \
+ && echo "deb http://security-cdn.debian.org/debian-security <%= ENV.fetch 'DEBIAN_VERSION' %>/updates main" > "$SECURITY_LIST" \
+ && apt-get -o "Dir::Etc::SourceList=${SECURITY_LIST}" -o Acquire::http::AllowRedirect=false update \
+ && apt-get -o "Dir::Etc::SourceList=${SECURITY_LIST}" -o Acquire::http::AllowRedirect=false upgrade -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm "$SECURITY_LIST"
+
+ONBUILD RUN SECURITY_LIST=$(mktemp) \
+ && grep security /etc/apt/sources.list > "$SECURITY_LIST" \
+ && apt-get -o "Dir::Etc::SourceList=${SECURITY_LIST}" update \
+ && apt-get -o "Dir::Etc::SourceList=${SECURITY_LIST}" upgrade -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm "$SECURITY_LIST"
 
 # cf. docker-library/postgres: explicitly create the user so uid and gid are consistent.
 RUN groupadd -r postgres && useradd -r -g postgres postgres
@@ -29,8 +46,9 @@ ENV PG_VERSION <%= ENV.fetch 'POSTGRES_VERSION' %>
 RUN ln -s -f /bin/true /usr/bin/chfn
 
 # Install some helpers we'll need
-RUN apt-install locales wget unzip sudo pwgen \
-    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+RUN apt-get update && apt-get install -y locales wget unzip sudo pwgen \
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 \
+    && rm -rf /var/lib/apt/lists/*
 ENV LANG en_US.utf8
 
 # And now install Postgres from its own repos
@@ -63,6 +81,13 @@ RUN apt-get update \
  && for v in ${POSTGIS_VERSION}; \
     do sudo apt-get install -y "^postgresql-${PG_VERSION}-postgis-${v}\$" || true; \
     done
+
+
+# Install Bats
+RUN wget https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz && \
+    tar xzf v0.4.0.tar.gz && cd bats-0.4.0 && ./install.sh /usr/local && \
+    cd .. && rm -rf v0.4.0.tar.gz bats-0.4.0
+
 
 # Export configuration
 ENV AUTH_METHOD <%= ENV.fetch 'AUTH_METHOD' %>

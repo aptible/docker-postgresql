@@ -3,13 +3,13 @@ set -o errexit
 set -o nounset
 set -x
 # We'll need the pglogical repo...
-echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ stretch-2ndquadrant main" >> /etc/apt/sources.list
+echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ buster-2ndquadrant main" >> /etc/apt/sources.list
 
 # ...and its key
 apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
-apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
+apt install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
   "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" \
   "^postgresql-${PG_VERSION}-pgaudit$" "^postgresql-${PG_VERSION}-wal2json$" \
   "^postgresql-${PG_VERSION}-repack" "^pgagent$"
@@ -24,7 +24,7 @@ DEPS=(
   python-dev
 )
 
-apt-install "${DEPS[@]}"
+apt install "${DEPS[@]}"
 pip install 'pgxnclient<1.3'
 
 # PLV8 v2.3.7 required for PG11

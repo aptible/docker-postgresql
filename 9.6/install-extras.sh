@@ -9,4 +9,4 @@ echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ wheezy-2nd
 apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
-apt-install "^postgresql-${PG_VERSION}-pglogical$"
+apt install "^postgresql-${PG_VERSION}-pglogical$"

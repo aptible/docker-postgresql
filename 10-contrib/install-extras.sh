@@ -9,7 +9,7 @@ echo "deb [arch=amd64] http://packages.2ndquadrant.com/pglogical/apt/ wheezy-2nd
 apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
-apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
+apt install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
   "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" \
   "^postgresql-${PG_VERSION}-pgaudit$" "^postgresql-${PG_VERSION}-wal2json$" \
   "^postgresql-${PG_VERSION}-repack" "^pgagent$"
@@ -24,7 +24,7 @@ DEPS=(
   python-dev
 )
 
-apt-install "${DEPS[@]}"
+apt install "${DEPS[@]}"
 pip install 'pgxnclient<1.3'
 
 PYTHON_OVERRIDE=python pgxn install "multicorn==1.3.5"
