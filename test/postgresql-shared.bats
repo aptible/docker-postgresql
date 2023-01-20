@@ -240,3 +240,13 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   echo "$PG_VERSION"
   sudo -u postgres psql --command "CREATE EXTENSION pglogical;"
 }
+
+@test "It avoids upgrading to problematic glibc versions" {
+  # https://wiki.postgresql.org/wiki/Locale_data_changes
+  # Need to be sure for now that we're only building images with glibc before 2.28
+  BAD="2.28"
+  INSTALLED=$(ldd --version | head -n 1 | grep -oE '[^ ]+$')
+  NEWEST=$(printf "${INSTALLED}\n${BAD}" | sort --version-sort | tail -n 1)
+
+  [ ${NEWEST} != ${INSTALLED} ]
+}
