@@ -36,7 +36,9 @@ ENV LANG en_US.utf8
 # And now install Postgres from its own repos
 ADD templates/etc/apt /etc/apt
 RUN sed -ri  's/__DEBIAN__VERSION__/<%= ENV.fetch 'DEBIAN_VERSION' %>/' /etc/apt/sources.list.d/pgdg.list
-
+<% if ENV.fetch('DEBIAN_VERSION') == 'bullseye' %>
+RUN sed -i 's/apt-archive/apt/g' /etc/apt/sources.list.d/pgdg.list
+<% end %>
 # The package names below are anchored, becuase they're interpreted by apt as regexes
 # (because they contain "."), which can result in undesired packages being installed if
 # we don't update the PG and PostGIS versions properly, e.g.:

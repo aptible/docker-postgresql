@@ -97,7 +97,6 @@ function pg_run_server () {
 function initialize() {
   pg_init_conf
   pg_init_data
-
   gosu postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
   gosu postgres /etc/init.d/postgresql start
   # The username is double-quoted because it's a name, but the password is single quoted, because it's a string.

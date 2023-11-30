@@ -118,6 +118,22 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   run-database.sh --client "$url" -c "SELECT * FROM foos;" | grep 'canary'
 }
 
+@test "It should use ICU as default collation for PostgreSQL 15 and beyond" {
+  skip 'keeping for future usage, but we are sticking with glibc for the immediate future'
+  versions-only ge 15
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+  initialize_and_start_pg
+  gosu postgres psql db -c'select datlocprovider from pg_database where datname=current_database();' | grep 'i'
+}
+
+@test "It should be collation version 153.14 for PostgreSQL 15 and beyond" {
+  skip 'keeping for future usage, but we are sticking with glibc for the immediate future'
+  versions-only ge 15
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+  initialize_and_start_pg
+  gosu postgres psql db -c'select datcollversion from pg_database where datname=current_database();' | grep '153.14'
+}
+
 @test "It should set up a follower with --initialize-from" {
   initialize_and_start_pg
   FOLLOWER_DIRECTORY=/tmp/follower
@@ -244,11 +260,20 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 @test "It avoids upgrading to problematic glibc versions" {
   # https://wiki.postgresql.org/wiki/Locale_data_changes
   # Need to be sure for now that we're only building images with glibc before 2.28
+  versions-only le 14
   BAD="2.28"
   INSTALLED=$(ldd --version | head -n 1 | grep -oE '[^ ]+$')
   NEWEST=$(printf "${INSTALLED}\n${BAD}" | sort --version-sort | tail -n 1)
 
   [ ${NEWEST} != ${INSTALLED} ]
+}
+
+@test "It should be using glibc version 2.31 on Debian 11" {
+  versions-only ge 15
+  VER="2.31"
+  INSTALLED=$(ldd --version | head -n 1 | grep -oE '[^ ]+$')
+
+  [ VER != ${INSTALLED} ]
 }
 
 @test "It includes a valid TZ data" {

@@ -26,11 +26,13 @@ function wait_for_pg {
 }
 
 test_reject_cipher() {
+  echo "test_reject_cipher"
   docker run --rm aptible/sslyze --starttls=postgres --hide_rejected_ciphers "$@" \
     | grep "Server rejected all cipher suites." > /dev/null
 }
 
 test_accept_cipher() {
+  echo "test_accept_cipher"
   docker run --rm aptible/sslyze --starttls=postgres --hide_rejected_ciphers "$@" \
     | grep "Preferred:" > /dev/null
 }
@@ -66,7 +68,7 @@ DB_URL="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$PG_CONTAI
 
 test_accept_cipher --tlsv1_2 "$DB_URL"
 
-if [[ "$IMG" =~ postgresql:(13|14) ]]; then
+if [[ "$IMG" =~ postgresql:(13|14|15|16) ]]; then
   test_reject_cipher --tlsv1_1 "$DB_URL"
   test_reject_cipher --tlsv1 "$DB_URL"
 else
