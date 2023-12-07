@@ -10,4 +10,11 @@ echo "deb [arch=amd64] https://dl.2ndquadrant.com/default/release/apt bullseye-2
 apt-key add /tmp/GPGkeys/pglogical.key
 
 # Install packaged extensions first
-apt-install "^postgresql-${PG_VERSION}-pglogical$"
+apt-install "^postgresql-${PG_VERSION}-pglogical$" "^postgresql-${PG_VERSION}-repack$"
+
+DEPS=(
+  build-essential
+  "^postgresql-server-dev-${PG_VERSION}$"
+)
+
+apt-install "${DEPS[@]}"
