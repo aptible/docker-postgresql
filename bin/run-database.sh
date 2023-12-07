@@ -101,7 +101,7 @@ function initialize() {
   gosu postgres /etc/init.d/postgresql start
   # The username is double-quoted because it's a name, but the password is single quoted, because it's a string.
   gosu postgres psql --command "CREATE USER \"${USERNAME:-aptible}\" WITH SUPERUSER PASSWORD '$PASSPHRASE'"
-  gosu postgres psql --command "CREATE DATABASE ${DB}"
+  gosu postgres psql --command "CREATE DATABASE \"${DB}\""
   gosu postgres /etc/init.d/postgresql stop
 }
 
@@ -218,7 +218,7 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
     echo "Configuring replication for database ${current_db}"
 
     if [ -z "$(gosu postgres psql --dbname "${DB}" --tuples-only --command "SELECT * FROM pg_catalog.pg_database where datname = '${current_db}'")" ]; then
-      gosu postgres psql --dbname "${DB}" --command "CREATE DATABASE ${current_db} WITH OWNER ${USERNAME:-aptible}"
+      gosu postgres psql --dbname "${DB}" --command "CREATE DATABASE \"${current_db}\" WITH OWNER \"${USERNAME:-aptible}\""
     fi
 
     current_master_url="$(echo "$master_url" | sed "s|/${database}|/${current_db}|")"
