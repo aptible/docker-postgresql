@@ -295,3 +295,14 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "CREATE EXTENSION pg_repack;"
   sudo -u postgres pg_repack --dry-run
 }
+
+@test "It should support pgvector" {
+  versions-only ge 15
+
+  dpkg-query -l postgresql-${PG_VERSION}-repack
+
+  initialize_and_start_pg
+  sudo -u postgres psql --command "CREATE EXTENSION vector;"
+  sudo -u postgres psql --command "CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));"
+  sudo -u postgres psql --command "DROP TABLE items;"
+}
