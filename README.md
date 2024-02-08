@@ -33,7 +33,7 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 * `12`: PostgreSQL 12
 * `11`: PostgreSQL 11
 * `10`: PostgreSQL 10
-* `9.6`: PostgreSQL 9.6
+* `9.6`: PostgreSQL 9.6 
 * `9.5`: PostgreSQL 9.5 (EOL 2021-02-11)
 * ~~`9.4`: PostgreSQL 9.4 (EOL 2020-02-13)~~ (Deprecated 2021-05-21)
 * ~~`9.3`: PostgreSQL 9.3 (EOL 2018-11-08)~~ (Deprecated 2021-05-21)
@@ -59,7 +59,7 @@ In the `-contrib` images, the following extensions are available.
 | multicorn | 9.5 - 10 |
 | wal2json |  9.5 - 12 |
 | pg-safeupdate | 9.5 - 11 |
-| pg_repack | 9.5 - 13 |
+| pg_repack | 9.5 - 16 |
 | pgagent | 9.5 - 13 |
 | pgaudit |  9.5 - 13 |
 | pgcron | 10 |
