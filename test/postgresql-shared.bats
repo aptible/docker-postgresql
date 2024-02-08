@@ -283,3 +283,15 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 @test "It includes an updated TZ data" {
   test -f /usr/share/zoneinfo/America/Ciudad_Juarez
 }
+
+@test "It should support pg_repack" {
+  versions-only ge 14
+
+  dpkg-query -l postgresql-${PG_VERSION}-repack
+
+  initialize_and_start_pg
+  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pg_repack';"
+  restart_pg
+  sudo -u postgres psql --command "CREATE EXTENSION pg_repack;"
+  sudo -u postgres pg_repack --dry-run
+}
