@@ -63,6 +63,7 @@ In the `-contrib` images, the following extensions are available.
 | pgagent | 9.5 - 13 |
 | pgaudit |  9.5 - 13 |
 | pgcron | 10 |
+| pgvector | 15-16 |
 
 Aptible Support can update your Database to use the `--contrib` image.
 
