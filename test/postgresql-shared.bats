@@ -309,7 +309,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
 @test "It should support wal2json" {
   versions-only ge 14
-  versions-only lte 16
+  versions-only le 16
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"
