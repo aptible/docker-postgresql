@@ -306,3 +306,15 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));"
   sudo -u postgres psql --command "DROP TABLE items;"
 }
+
+@test "It should support wal2json" {
+  versions-only ge 14
+  versions-only le 16
+
+  initialize_and_start_pg
+  sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"
+  sudo -u postgres psql --command "ALTER SYSTEM SET max_replication_slots=1;"
+  restart_pg
+  sudo -u postgres psql --command "SELECT 'init' FROM pg_create_logical_replication_slot('test_slot', 'wal2json');"
+  sudo -u postgres psql --command "SELECT 'stop' FROM pg_drop_replication_slot('test_slot');"
+}
